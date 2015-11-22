@@ -1,12 +1,12 @@
 var gulp       = require('gulp'),
 	  coffeelint = require('gulp-coffeelint'),
-	  // reporter   = require('coffeelint-stylish').reporter
 		nodemon    = require('gulp-nodemon'),
 		coffee     = require('gulp-coffee'),
 		clean      = require('gulp-clean'),
 		watch      = require('gulp-watch'),
 		livereload = require('gulp-livereload'),
-		gutil      = require('gulp-util');
+		gutil      = require('gulp-util'),
+		stylish    = require('coffeelint-stylish');
 
 gulp.task('start', function () {
   nodemon({
@@ -17,9 +17,9 @@ gulp.task('start', function () {
 });
 
 gulp.task('lint', function () {
-    gulp.src('./server/*.coffee')
+    gulp.src('./server/**/*.coffee')
         .pipe(coffeelint())
-        .pipe(coffeelint.reporter())
+        .pipe(coffeelint.reporter(stylish))
 });
 
 gulp.task('coffee', function() {
@@ -35,11 +35,11 @@ gulp.task('clean', function(){
 
 gulp.task('livereload', function(){
 	livereload.reload();
-})
+});
 
 gulp.task('watch', function(){
 	livereload.listen();
-	gulp.watch('./server/**/*.coffee', ['livereload', 'coffee'])
+	gulp.watch('./server/**/*.coffee', ['livereload', 'coffee', 'lint'])
 });
 
 
