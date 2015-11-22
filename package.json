@@ -10,11 +10,17 @@
   "license": "",
   "dependencies": {
     "body-parser": "^1.14.1",
-    "express": "^4.13.3",
-    "grunt": "~0.4.5",
-    "load-grunt-tasks": "^3.1.0"
+    "express": "^4.13.3"
   },
   "devDependencies": {
-    "grunt-nodemon": "^0.4.0"
+    "coffeelint-stylish": "^0.1.2",
+    "gulp": "^3.9.0",
+    "gulp-clean": "^0.3.1",
+    "gulp-coffee": "^2.3.1",
+    "gulp-coffeelint": "^0.5.0",
+    "gulp-livereload": "^3.8.1",
+    "gulp-nodemon": "^2.0.4",
+    "gulp-util": "^3.0.7",
+    "gulp-watch": "^4.3.5"
   }
 }
