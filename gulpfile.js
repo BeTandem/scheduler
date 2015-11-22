@@ -33,6 +33,10 @@ gulp.task('clean', function(){
 	.pipe(clean({force:true}));
 });
 
+gulp.task('livereload', function(){
+	livereload.reload();
+})
+
 gulp.task('watch', function(){
 	livereload.listen();
 	gulp.watch('./server/**/*.coffee', ['livereload', 'coffee'])
@@ -41,3 +45,4 @@ gulp.task('watch', function(){
 
 
 gulp.task('default', ['coffee','start','lint','watch']);
+gulp.task('clean', ['clean']);
