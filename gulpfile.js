@@ -6,14 +6,16 @@ var gulp       = require('gulp'),
 		watch      = require('gulp-watch'),
 		livereload = require('gulp-livereload'),
 		gutil      = require('gulp-util'),
-		stylish    = require('coffeelint-stylish');
+		stylish    = require('coffeelint-stylish'),
+		mkdirp     = require('mkdirp'),
+		shell      = require('gulp-shell');
 
 gulp.task('start', function () {
   nodemon({
     script: './dist/index.js'
   , ext: 'js coffee'
   , env: { 'NODE_ENV': 'development' }
-  })
+  });
 });
 
 gulp.task('lint', function () {
@@ -42,7 +44,15 @@ gulp.task('watch', function(){
 	gulp.watch('./server/**/*.coffee', ['livereload', 'coffee', 'lint'])
 });
 
+gulp.task('mongo_setup_dev', function(){ //this needs to be run with sudo
+	mkdirp('/data/db', 0755, function(err){
+		if (err) throw err;
+		else console.log("successfully created dev db for mongo")
+	})
+});
 
+gulp.task('mongo_start_dev', shell.task([
+	'sudo mongod --dbpath /data/db --port 27017'
+]));
 
 gulp.task('default', ['coffee','start','lint','watch']);
-gulp.task('clean', ['clean']);
