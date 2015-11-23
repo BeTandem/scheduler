@@ -5,6 +5,9 @@ routes = require "./routes"
 http = require "http"
 app = express()
 
+db = require './databaseAdapter'
+db.InitDB()
+
 # Make app using Express framework
 app.set "port", process.env.PORT or 3000
 
