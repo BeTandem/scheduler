@@ -1,17 +1,22 @@
+"use strict"
+
+# Requires
 Db = require('mongodb').Db
 Server = require('mongodb').Server
+
+# Database setup
 dbPort = 27017
 dbHost = 'localhost'
 dbName = 'dev_db'
+DataBase = {}
 
-DataBase = ->
-module.exports = DataBase
-
+# Singleton instance of database
 DataBase.GetDB = ->
   if typeof DataBase.db == 'undefined'
     DataBase.InitDB()
   DataBase.db
 
+# Initialize database
 DataBase.InitDB = (callback) ->
   if _curDB == null or _curDB == undefined or _curDB == ''
     _curDB = dbName
@@ -28,12 +33,17 @@ DataBase.InitDB = (callback) ->
     return
   return
 
+# Close database connection
 DataBase.Disconnect = ->
   if DataBase.db
     DataBase.db.close()
   return
 
+# Retrieve BSON Id
 DataBase.BsonIdFromString = (id) ->
   mongo = require 'mongodb'
   BSON = mongo.BSONPure
   new (BSON.ObjectID)(id)
+
+# Export Database Object
+module.exports = DataBase
