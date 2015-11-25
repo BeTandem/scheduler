@@ -3,11 +3,14 @@
 # Requires
 Db = require('mongodb').Db
 Server = require('mongodb').Server
+config = require 'config'
 
 # Database setup
-dbPort = 27017
-dbHost = 'localhost'
-dbName = 'dev_db'
+dbConfig = config.get 'dbConfig'
+dbPort = dbConfig.port
+dbHost = dbConfig.host
+dbName = dbConfig.name
+
 DataBase = {}
 
 # Singleton instance of database

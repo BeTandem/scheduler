@@ -15,3 +15,7 @@
 /node_modules
 /npm-debug.log
 /dist
+
+# Configurations
+/config/*
+!/config/default.json.sample
