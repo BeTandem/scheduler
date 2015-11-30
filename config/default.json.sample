@@ -1,0 +1,8 @@
+{
+  //Database Configurations
+  "dbConfig": {
+    "port": 27017,
+    "host": "localhost",
+    "name": "dev_db"
+  }
+}
