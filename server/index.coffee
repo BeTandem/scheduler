@@ -5,12 +5,8 @@ express = require "express"
 bodyParser = require "body-parser"
 routes = require "./routes"
 http = require "http"
+cors = require "cors"
 databaseAdapter = require('./database_adapter')
-
-# db = databaseAdapter.getDB()
-
-# db.collection('test').insert {foo: 'bar'}, (err, result) ->
-#     console.log result
 
 # Make app using Express framework
 app = express()
@@ -21,6 +17,7 @@ app.set "env", process.env.NODE_ENV or "development"
 
 app.use bodyParser.urlencoded(extended: false)
 app.use bodyParser.json()
+app.use cors() # TODO: change because allows all urls
 routes app
 
 # Start server
