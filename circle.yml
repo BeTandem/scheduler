@@ -2,7 +2,9 @@ machine:
   services:
     - mongodb
   node:
-   version: 5.3.0
+    version: 5.3.0
+  environment:
+    NODE_ENV: test
 
 checkout:
   post:
@@ -14,11 +16,12 @@ dependencies:
     - bower_components
   pre:
     - npm install -g gulp
+    - npm install -g forever
   override:
     - npm prune && npm install
 
 test:
   override:
-    - gulp --test:
-        background: true
+    - gulp coffee
+    - forever dist/index.js
     - gulp test
