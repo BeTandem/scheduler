@@ -10,15 +10,16 @@ databaseAdapter = require('./database_adapter')
 
 # Make app using Express framework
 app = express()
+router = express.Router()
 
 
 app.set "port", process.env.PORT or 3000
 app.set "env", process.env.NODE_ENV or "development"
 
+app.use cors() # TODO: change because allows all urls
 app.use bodyParser.urlencoded(extended: false)
 app.use bodyParser.json()
-app.use cors() # TODO: change because allows all urls
-routes app
+routes app, router
 
 # Start server
 server = http.createServer(app)

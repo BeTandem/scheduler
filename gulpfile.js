@@ -12,7 +12,8 @@ var gulp       = require('gulp'),
 		watch      = require('gulp-watch'),
 		gutil      = require('gulp-util'),
     uglify     = require('gulp-uglify'),
-		stylish    = require('coffeelint-stylish');
+		stylish    = require('coffeelint-stylish'),
+    mocha      = require('gulp-mocha');
 
 /**
   * Gulp Configurations
@@ -22,6 +23,9 @@ var config = {
   prod: !!gutil.env.production,
   init: function(){
     this.env = this.prod ? 'production' : 'development';
+    if(!!gutil.env.test){
+      this.env = 'test'
+    }
     return this;
   }
 }.init();
@@ -33,9 +37,9 @@ var config = {
 
 // Lint Coffee files
 gulp.task('lint', function () {
-    gulp.src('./server/**/*.coffee')
-        .pipe(coffeelint())
-        .pipe(coffeelint.reporter(stylish))
+  gulp.src('./server/**/*.coffee')
+    .pipe(coffeelint())
+    .pipe(coffeelint.reporter(stylish))
 });
 
 // Compile coffee files to js
@@ -69,19 +73,32 @@ gulp.task('watch', function(){
 	gulp.watch('./server/**/*.coffee', ['coffee', 'lint'])
 });
 
+/**
+  * Testing Tasks
+  */
+
+gulp.task('test', function(){
+  require('coffee-script/register'); // Required for mocha
+  gulp.src('tests/**/*.coffee', {read:false})
+  .pipe(mocha({
+    reporter: 'spec',
+    compilers: 'coffee'
+  }));
+});
+
 
 /**
   * Serve Tasks
   */
 
 // Start Nodemon Server
-gulp.task('start', function () {
+gulp.task('nodemon', function () {
   nodemon({
     script: './dist/index.js',
-    ext: 'js coffee',
+    ext: 'coffee',
     env: { 'NODE_ENV': config.env }
-  })
+  });
 });
 
 // default task
-gulp.task('default', ['coffee','start','lint','watch']);
+gulp.task('default', ['coffee', 'lint', 'nodemon', 'watch']);
