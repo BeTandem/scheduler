@@ -23,5 +23,5 @@ dependencies:
 test:
   override:
     - gulp coffee
-    - forever dist/index.js
+    - forever start dist/index.js
     - gulp test
