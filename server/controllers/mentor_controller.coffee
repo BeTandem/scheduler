@@ -1,29 +1,39 @@
 'use strict'
-
+mongo = require('mongoskin')
 databaseAdapter = require '../database_adapter'
 db = databaseAdapter.getDB()
 
-# A smimple test controller to test the database adapter
 MentorController =
 
-  # a get request that returns single mentor
+  # returns single mentor by id
   getMentor: (req, res) ->
-    # TODO: implement ID request
-    return
+    mentor_id = req.params.mentor_id
     db = databaseAdapter.getDB()
-    return db.collection('mentors').find().toArray (err, result) ->
-      res.status(200).send result
+    return db.collection('mentors')
+      .find
+        _id: mongo.helper.toObjectID(mentor_id)
+      .toArray (err, result) ->
+        if err
+          res.send err
+        res.status(200).send result
 
-  # a get request that returns all of the values in the mentors collection
+  # returns the mentors collection
   getMentors: (req, res) ->
     db = databaseAdapter.getDB()
-    return db.collection('mentors').find().toArray (err, result) ->
-      res.status(200).send result
+    return db.collection('mentors')
+      .find()
+      .toArray (err, result) ->
+        if err
+          res.send err
+        res.status(200).send result
 
-  # add a new document to the test collection
+  # adds a new mentor to the mentor collection
   addMentor: (req, res) ->
     document = req.body
-    db.collection('mentors').insert document, (err, result) ->
-      res.status(200).send "Successful"
+    db.collection('mentors')
+      .insert document, (err, result) ->
+        if err
+          res.send err
+        res.status(200).send "Successful"
 
 module.exports = MentorController
