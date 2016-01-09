@@ -1,0 +1,22 @@
+machine:
+  services:
+    - mongodb
+
+checkout:
+  post:
+    - mv config/default.json.sample config/test.json
+
+dependencies:
+  cache_directories:
+    - node_modules
+    - bower_components
+  pre:
+    - npm install -g gulp
+  override:
+    - npm prune && npm install
+
+test:
+  override:
+    - gulp --test:
+        background: true
+    - gulp test
