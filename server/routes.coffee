@@ -1,8 +1,10 @@
 "use strict"
-testController = require './controllers/test_controller'
-mentorController = require './controllers/mentor_controller'
+testController    = require './controllers/test_controller'
+mentorController  = require './controllers/mentor_controller'
+passport          = require './authentication'
 
 module.exports = (app, router) ->
+  app.use passport.initialize()
   app.use "/api/v1", router
 
   app.get "/", (req, res) ->
@@ -14,12 +16,10 @@ module.exports = (app, router) ->
     console.log('Making a ' + req.method + ' request to ' + req.url)
     next()
 
-  # Test Route
-  router.get "/test", (req, res) ->
-    testController.get(req, res)
-
-  router.post "/test", (req, res) ->
-    testController.post(req, res)
+  # Login Routes
+  router.route "/login"
+    .post passport.authenticate('local'), (req, res) ->
+      res.status(200).send "Login Complete"
 
   # Mentor Routes
   router.route "/mentors"
