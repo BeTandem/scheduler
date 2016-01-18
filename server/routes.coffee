@@ -5,6 +5,7 @@ passport          = require './authentication'
 
 module.exports = (app, router) ->
   app.use passport.initialize()
+  app.use passport.session()
   app.use "/api/v1", router
 
   app.get "/", (req, res) ->
@@ -19,7 +20,8 @@ module.exports = (app, router) ->
   # Login Routes
   router.route "/login"
     .post passport.authenticate('local'), (req, res) ->
-      res.status(200).send "Login Complete"
+      # console.log(res)
+      res.status(200).send "yo"
 
   # Mentor Routes
   router.route "/mentors"

@@ -1,12 +1,14 @@
 "use strict"
 
 # requires
-express = require "express"
-bodyParser = require "body-parser"
-routes = require "./routes"
-http = require "http"
-cors = require "cors"
+express         = require "express"
+session         = require "express-session"
+bodyParser      = require "body-parser"
+routes          = require "./routes"
+http            = require "http"
+cors            = require "cors"
 databaseAdapter = require('./database_adapter')
+
 
 # Make app using Express framework
 app = express()
@@ -19,6 +21,11 @@ app.set "env", process.env.NODE_ENV or "development"
 app.use cors() # TODO: change because allows all urls
 app.use bodyParser.urlencoded(extended: false)
 app.use bodyParser.json()
+app.use session({
+  secret: 'keyboard cat',
+  resave: false,
+  saveUninitialized: true
+  })
 routes app, router
 
 # Start server
