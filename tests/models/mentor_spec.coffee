@@ -1,6 +1,7 @@
 # Load global before/after
 
 db        = require '../utils'
+mongo     = require 'mongoskin'
 request   = require 'superagent'
 prefix    = require 'superagent-prefix'
 chai      = require 'chai'
@@ -52,3 +53,20 @@ describe 'Model: Mentor', ->
         expect(err).to.equal null
         expect(result.length).to.equal 2
         done()
+
+  it 'should be able to edit a mentor', (done)->
+    db.collection('mentors').find().toArray (err, result)->
+      expect(err).to.equal null
+      id = result[0]._id
+      request.post('/mentors/'+id).use prefix
+      .send({name: "Modified Mentor"})
+      .end (err, res) ->
+        expect(err).to.equal null
+        expect(res.text).to.equal "Successful"
+        # also check that it is modified in the test db
+        db.collection('mentors').find {_id: mongo.helper.toObjectID(id)}
+          .toArray (err, result) ->
+            expect(err).to.equal null
+            expect(result.length).to.equal 1
+            expect(result[0].name).to.equal "Modified Mentor"
+            done()

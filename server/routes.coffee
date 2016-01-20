@@ -28,7 +28,10 @@ module.exports = (app, router) ->
     .post (req, res) ->
       mentorController.addMentor(req, res)
 
-  router.get "/mentors/:mentor_id", (req, res) ->
-    mentorController.getMentor(req, res)
+  router.route "/mentors/:mentor_id"
+    .get (req, res) ->
+      mentorController.getMentor(req, res)
+    .post (req, res) ->
+      mentorController.updateMentor(req, res)
 
 
