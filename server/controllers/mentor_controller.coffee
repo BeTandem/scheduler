@@ -39,12 +39,26 @@ MentorController =
     mentor_id = req.params.mentor_id
     document = req.body
     db.collection('mentors')
-      .update({_id: mongo.helper.toObjectID(mentor_id)},
+      .update(
+        {_id: mongo.helper.toObjectID(mentor_id)},
         document,
         (err, result) ->
           if err
             res.send err
           res.status(200).send "Successful"
       )
+
+  # deletes a mentor from the collection
+  deleteMentor: (req, res) ->
+    mentor_id = req.params.mentor_id
+    db.collection('mentors')
+      .remove(
+        {_id: mongo.helper.toObjectID(mentor_id)},
+        (err, result) ->
+          if err
+            res.send err
+          res.status(200).send "Successful"
+      )
+
 
 module.exports = MentorController

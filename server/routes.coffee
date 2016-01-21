@@ -33,5 +33,7 @@ module.exports = (app, router) ->
       mentorController.getMentor(req, res)
     .post (req, res) ->
       mentorController.updateMentor(req, res)
+    .delete (req, res) ->
+      mentorController.deleteMentor(req, res)
 
 
