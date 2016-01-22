@@ -2,30 +2,25 @@
 
 passport        = require 'passport'
 localStrategy   = require('passport-local').Strategy
+bearerStrategy  = require('passport-http-bearer').Strategy
+authController  = require './controllers/auth_controller'
 db              = require './database_adapter'
 
+# Bearer Strategy for Token-based Auth
+passport.use new bearerStrategy (token, done) ->
+  authController.validToken(token, done)
 
 # Define Local Strategy
 passport.use new localStrategy (username, password, done) ->
-  console.log(username)
-  console.log(password)
-  if username == "admin@admin.com" && password == "password"
-    console.log("correct!")
-    return done null, { id: "112323124", message: 'Correct login!' }
-  else
-    return done null, false, { message: 'Incorrect login.' }
-
+  authController.validPassword(username, password, done)
 
 # Define Serialization
 passport.serializeUser (user, done) ->
-  console.log(user)
-  done(null, user.id)
+  done(null, user.token)
 
 # Define Deserialization
-passport.deserializeUser (id, done) ->
-  console.log(id)
-  # User.findById id, (err, user) ->
-  #   done(err, user)
-
+passport.deserializeUser (token, done) ->
+  # Actually decodes token using JWT
+  authController.validToken(token, done)
 
 module.exports = passport

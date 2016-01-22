@@ -1,7 +1,7 @@
 # Load global before/after
 
 db        = require '../utils'
-request   = require 'superagent'
+request   = require('superagent').agent()
 prefix    = require 'superagent-prefix'
 chai      = require 'chai'
 assert    = chai.assert
@@ -18,6 +18,15 @@ beforeEach (done) ->
         if err
           console.log("Could not prepare mentors collection")
         done()
+
+beforeEach (done) ->
+  request
+    .post('/login').use prefix
+    .send({username: 'admin', password: 'password' })
+    .end (err, res) ->
+      if err
+        console.log("Error logging in")
+      done()
 
 describe 'Model: Mentor', ->
   it 'should be able to get mentors', (done)->

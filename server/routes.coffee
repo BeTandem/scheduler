@@ -1,31 +1,30 @@
 "use strict"
-testController    = require './controllers/test_controller'
 mentorController  = require './controllers/mentor_controller'
+authController    = require './controllers/auth_controller'
 passport          = require './authentication'
+morgan            = require 'morgan'
 
 module.exports = (app, router) ->
   app.use passport.initialize()
   app.use passport.session()
+  app.use morgan('combined')
   app.use "/api/v1", router
 
   app.get "/", (req, res) ->
     res.status(200).send "TandemApi"
 
-  # Middleware for router
-  router.use (req, res, next)->
-    # visualize requests in terminal
-    console.log('Making a ' + req.method + ' request to ' + req.url)
-    next()
-
-  # Login Routes
+  # Login/logout Routes
   router.route "/login"
     .post passport.authenticate('local'), (req, res) ->
-      # console.log(res)
-      res.status(200).send "yo"
+      res.status(200).send req.user
+
+  router.route "/logout"
+    .get authController.removeAuthentication, (req, res) ->
+      res.status(200).send "Successfully logged out"
 
   # Mentor Routes
   router.route "/mentors"
-    .get (req, res) ->
+    .get authController.authenticate, (req, res) ->
       mentorController.getMentors(req, res)
     .post (req, res) ->
       mentorController.addMentor(req, res)

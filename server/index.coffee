@@ -22,7 +22,7 @@ app.use cors() # TODO: change because allows all urls
 app.use bodyParser.urlencoded(extended: false)
 app.use bodyParser.json()
 app.use session({
-  secret: 'keyboard cat',
+  secret: 'reallysecurekey', # TODO: move to ENV
   resave: false,
   saveUninitialized: true
   })
