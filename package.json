@@ -39,6 +39,7 @@
     "gulp-watch": "^4.3.5",
     "mocha-junit-reporter": "^1.9.1",
     "superagent": "^1.6.1",
+    "superagent-defaults": "^0.1.14",
     "superagent-prefix": "0.0.2"
   }
 }

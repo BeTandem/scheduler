@@ -6,7 +6,6 @@ auth =
   validPassword: (username, password, done)->
     # Password based authentication
     User.find({username: username}).toArray (err, result)->
-      console.log("VALIDATING PASSWORD")
       if result.length == 1
         userObject = result[0]
         if User.methods.validPassword(password, userObject.password)
@@ -40,7 +39,7 @@ auth =
 createToken = (user)->
   # remove hashed pass from returned object
   delete user.password
-  # TODO: move to ENV
+  # TODO: move secret to ENV
   return jwt.sign user, 'supersecret', { expiresIn: 7*24*60*60 }
 
 verifyToken = (token, done)->

@@ -1,7 +1,7 @@
 # Load global before/after
 
 db        = require '../utils'
-request   = require('superagent').agent()
+defaults   = require('superagent-defaults')
 prefix    = require 'superagent-prefix'
 chai      = require 'chai'
 assert    = chai.assert
@@ -9,6 +9,7 @@ expect    = chai.expect
 should    = chai.should
 
 prefix = prefix(':3000/api/v1')
+request = defaults()
 
 beforeEach (done) ->
   db.collection('mentors')
@@ -26,6 +27,8 @@ beforeEach (done) ->
     .end (err, res) ->
       if err
         console.log("Error logging in")
+      request
+        .set('Authorization', 'Bearer '+res.body.token)
       done()
 
 describe 'Model: Mentor', ->
