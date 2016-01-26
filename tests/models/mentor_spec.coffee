@@ -70,3 +70,17 @@ describe 'Model: Mentor', ->
             expect(result.length).to.equal 1
             expect(result[0].name).to.equal "Modified Mentor"
             done()
+
+  it 'should be able to delete a mentor', (done)->
+    db.collection('mentors').find().toArray (err, result) ->
+      expect(err).to.equal null
+      id = result[0]._id
+      request.delete('/mentors/'+id).use prefix
+      .end (err, res) ->
+        expect(err).to.equal null
+        expect(res.text).to.equal "Successful"
+        # make sure it was removed from the database
+        db.collection('mentors').find().toArray (err, result)->
+          expect(err).to.equal null
+          expect(result.length).to.equal 0
+          done()
