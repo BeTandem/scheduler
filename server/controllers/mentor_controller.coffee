@@ -13,7 +13,8 @@ MentorController =
         _id: mongo.helper.toObjectID(mentor_id)
       .toArray (err, result) ->
         if err
-          res.send err
+          console.log("ERROR: " + err)
+          return res.send err
         res.status(200).send result
 
   # returns the mentors collection
@@ -22,7 +23,8 @@ MentorController =
       .find()
       .toArray (err, result) ->
         if err
-          res.send err
+          console.log "ERROR: " + err
+          return res.send err
         res.status(200).send result
 
   # adds a new mentor to the mentor collection
@@ -31,20 +33,23 @@ MentorController =
     db.collection('mentors')
       .insert document, (err, result) ->
         if err
-          res.send err
+          console.log "ERROR: " + err
+          return res.send err
         res.status(200).send "Successful"
 
   # updates data for a mentor in the mentor collection
   updateMentor: (req, res) ->
     mentor_id = req.params.mentor_id
     document = req.body
+    delete document._id
     db.collection('mentors')
       .update(
         {_id: mongo.helper.toObjectID(mentor_id)},
         document,
         (err, result) ->
           if err
-            res.send err
+            console.log "ERROR: " + err
+            return res.send err
           res.status(200).send "Successful"
       )
 
@@ -56,7 +61,8 @@ MentorController =
         {_id: mongo.helper.toObjectID(mentor_id)},
         (err, result) ->
           if err
-            res.send err
+            console.log "ERROR: " + err
+            return res.send err
           res.status(200).send "Successful"
       )
 
