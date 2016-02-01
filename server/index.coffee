@@ -1,17 +1,17 @@
 "use strict"
 
 # requires
-express = require "express"
-bodyParser = require "body-parser"
-routes = require "./routes"
-http = require "http"
-cors = require "cors"
+express         = require "express"
+session         = require "express-session"
+bodyParser      = require "body-parser"
+routes          = require "./routes"
+http            = require "http"
+cors            = require "cors"
 databaseAdapter = require('./database_adapter')
 
 # Make app using Express framework
 app = express()
 router = express.Router()
-
 
 app.set "port", process.env.PORT or 3000
 app.set "env", process.env.NODE_ENV or "development"

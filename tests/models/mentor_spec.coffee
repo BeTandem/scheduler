@@ -1,8 +1,8 @@
 # Load global before/after
 
 db        = require '../utils'
+defaults  = require 'superagent-defaults'
 mongo     = require 'mongoskin'
-request   = require 'superagent'
 prefix    = require 'superagent-prefix'
 chai      = require 'chai'
 assert    = chai.assert
@@ -10,6 +10,7 @@ expect    = chai.expect
 should    = chai.should
 
 prefix = prefix(':3000/api/v1')
+request = defaults()
 
 beforeEach (done) ->
   db.collection('mentors')
@@ -19,6 +20,17 @@ beforeEach (done) ->
         if err
           console.log("Could not prepare mentors collection")
         done()
+
+beforeEach (done) ->
+  request
+    .post('/login').use prefix
+    .send({username: 'admin', password: 'password' })
+    .end (err, res) ->
+      if err
+        console.log("Error logging in")
+      request
+        .set('Authorization', 'Bearer '+res.body.token)
+      done()
 
 describe 'Model: Mentor', ->
   it 'should be able to get mentors', (done)->

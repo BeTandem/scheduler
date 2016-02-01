@@ -1,31 +1,35 @@
 "use strict"
-testController = require './controllers/test_controller'
-mentorController = require './controllers/mentor_controller'
+mentorController  = require './controllers/mentor_controller'
+authController    = require './controllers/auth_controller'
+passport          = require './authentication'
+morgan            = require 'morgan'
 
 module.exports = (app, router) ->
+  app.use passport.initialize()
+  app.use morgan('combined')
   app.use "/api/v1", router
+
+  password = passport.authenticate 'password', { session: false }
+  bearer = passport.authenticate 'bearer', { session: false }
 
   app.get "/", (req, res) ->
     res.status(200).send "TandemApi"
 
-  # Middleware for router
-  router.use (req, res, next)->
-    # visualize requests in terminal
-    console.log('Making a ' + req.method + ' request to ' + req.url)
-    next()
+  # Login/logout Routes
+  router.route "/login"
+    .post password, (req, res) ->
+      res.status(200).send req.user
 
-  # Test Route
-  router.get "/test", (req, res) ->
-    testController.get(req, res)
-
-  router.post "/test", (req, res) ->
-    testController.post(req, res)
+  router.route "/logout"
+    #this route is only useful for session based auth
+    .get authController.removeAuthentication, (req, res) ->
+      res.status(200).send "Successfully logged out"
 
   # Mentor Routes
   router.route "/mentors"
-    .get (req, res) ->
+    .get bearer, (req, res) ->
       mentorController.getMentors(req, res)
-    .post (req, res) ->
+    .post bearer, (req, res) ->
       mentorController.addMentor(req, res)
 
   router.route "/mentors/:mentor_id"
