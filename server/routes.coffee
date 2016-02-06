@@ -1,5 +1,6 @@
 "use strict"
 mentorController  = require './controllers/mentor_controller'
+roomController    = require './controllers/room_controller'
 authController    = require './controllers/auth_controller'
 passport          = require './authentication'
 morgan            = require 'morgan'
@@ -40,4 +41,18 @@ module.exports = (app, router) ->
     .delete (req, res) ->
       mentorController.deleteMentor(req, res)
 
+  # Mentor Routes
+  router.route "/rooms"
+    .get bearer, (req, res) ->
+      roomController.getRooms(req, res)
+    .post bearer, (req, res) ->
+      roomController.addRoom(req, res)
+
+  router.route "/rooms/:room_id"
+    .get (req, res) ->
+      roomController.getRoom(req, res)
+    .post (req, res) ->
+      roomController.updateRoom(req, res)
+    .delete (req, res) ->
+      roomController.deleteRoom(req, res)
 
