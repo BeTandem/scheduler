@@ -59,7 +59,7 @@ describe 'Model: Mentor', ->
     .send({name:"Added Mentor"})
     .end (err, res) ->
       expect(err).to.equal null
-      expect(res.text).to.equal "Successful"
+      expect(res.body.name).to.equal "Added Mentor"
       # also check that it is in the test db
       db.collection('mentors').find().toArray (err, result)->
         expect(err).to.equal null

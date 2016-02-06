@@ -35,7 +35,7 @@ MentorController =
         if err
           console.log "ERROR: " + err
           return res.send err
-        res.status(200).send "Successful"
+        res.status(200).send result.ops[0]
 
   # updates data for a mentor in the mentor collection
   updateMentor: (req, res) ->
