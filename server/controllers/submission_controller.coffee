@@ -2,9 +2,9 @@
 mongo             = require('mongoskin')
 config            = require 'config'
 databaseAdapter   = require '../database_adapter'
-roomController    = require './room_controller'
-mentorController  = require './mentor_Controller'
-menteeController  = require './mentee_controller'
+# roomController    = require './room_controller'
+# mentorController  = require './mentor_controller'
+# menteeController  = require './mentee_controller'
 nodemailer        = require 'nodemailer'
 db = databaseAdapter.getDB()
 
