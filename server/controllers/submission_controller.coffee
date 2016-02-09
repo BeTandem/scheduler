@@ -35,22 +35,52 @@ SubmissionController =
   # adds a new submission to the submission collection
   addSubmission: (req, res) ->
     # Send Email that Urls have been submitted
+    body = req.body
     user = req.user
-    sendEmail(user)
+    sendEmail(user, body)
     res.status(200).send "Successful"
 
-sendEmail = (user) ->
+sendEmail = (user, body) ->
   # Send Email that Urls have been submitted
   emailConfig = config.get 'emailConfig'
   transporter =
     nodemailer.createTransport emailConfig.smtp
+
+  roomTable = "<table><tr><h2>Rooms</h2><tr>"
+  roomTable += "<tr><th>Name</th><th>url</th><tr>"
+  for room in body.rooms
+    roomTable += "<tr><td>"+room.name+"</td><td>"+
+      room.calendarUrl+"</td></tr>"
+  roomTable += "</table>"
+
+  mentorTable = "<table><tr><h2>Mentors</h2><tr>"
+  mentorTable += "<tr><th>Name</th><th>url</th><tr>"
+  for mentor in body.mentors
+    mentorTable += "<tr><td>"+mentor.name+"</td><td>"+
+      mentor.calendarUrl+"</td></tr>"
+  mentorTable += "</table>"
+
+  menteeTable = "<table><tr><h2>Mentees</h2><tr>"
+  menteeTable += "<tr><th>Name</th><th>url</th><tr>"
+  for mentee in body.mentees
+    menteeTable += "<tr><td>"+mentee.name+"</td><td>"+
+      mentee.calendarUrl+"</td></tr>"
+  menteeTable += "</table>"
+
+  emailBody = "<p>New Tandem Scheduler for a submission from "
+  emailBody += user.username + "</p><br/><br/>"
+  emailBody += roomTable + "<br/><br/>"
+  emailBody += mentorTable + "<br/><br/>"
+  emailBody += menteeTable
+
+  console.log(emailBody)
+
   mailOptions =
     from: emailConfig.from
     to: emailConfig.to
     subject: 'There has been a schedule submission'
     text: 'Please check Tandem Scheduler for a submission from '+user.username
-    html: '<b>Please check Tandem Scheduler for a submission from '+
-      user.username + '</b>'
+    html: emailBody
 
   transporter.sendMail mailOptions, (error, info) ->
     if error
