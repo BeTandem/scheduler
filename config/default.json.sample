@@ -4,5 +4,13 @@
     "port": 27017,
     "host": "localhost",
     "name": "dev_db"
+  },
+  "emailConfig": {
+    "smtp": "smtps://user%40gmail.com:pass@smtp.gmail.com",
+    "from": "Tandem Scheduler 👥 <scheduler@example-gmail.com>",
+    "to": "to-address@example-gmail.com"
+  },
+  "secrets":{
+    "auth": "supersecret"
   }
 }

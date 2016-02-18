@@ -1,10 +1,11 @@
 "use strict"
-roomController    = require './controllers/room_controller'
-mentorController  = require './controllers/mentor_controller'
-menteeController  = require './controllers/mentee_controller'
-authController    = require './controllers/auth_controller'
-passport          = require './authentication'
-morgan            = require 'morgan'
+roomController        = require './controllers/room_controller'
+mentorController      = require './controllers/mentor_controller'
+menteeController      = require './controllers/mentee_controller'
+submissionController  = require './controllers/submission_controller'
+authController        = require './controllers/auth_controller'
+passport              = require './authentication'
+morgan                = require 'morgan'
 
 module.exports = (app, router) ->
   app.use passport.initialize()
@@ -35,11 +36,11 @@ module.exports = (app, router) ->
       mentorController.addMentor(req, res)
 
   router.route "/mentors/:mentor_id"
-    .get (req, res) ->
+    .get bearer, (req, res) ->
       mentorController.getMentor(req, res)
-    .post (req, res) ->
+    .post bearer, (req, res) ->
       mentorController.updateMentor(req, res)
-    .delete (req, res) ->
+    .delete bearer, (req, res) ->
       mentorController.deleteMentor(req, res)
 
   # Room Routes
@@ -50,11 +51,11 @@ module.exports = (app, router) ->
       roomController.addRoom(req, res)
 
   router.route "/rooms/:room_id"
-    .get (req, res) ->
+    .get bearer, (req, res) ->
       roomController.getRoom(req, res)
-    .post (req, res) ->
+    .post bearer, (req, res) ->
       roomController.updateRoom(req, res)
-    .delete (req, res) ->
+    .delete bearer, (req, res) ->
       roomController.deleteRoom(req, res)
 
   # Mentee Routes
@@ -65,10 +66,16 @@ module.exports = (app, router) ->
       menteeController.addMentee(req, res)
 
   router.route "/mentees/:mentee_id"
-    .get (req, res) ->
+    .get bearer, (req, res) ->
       menteeController.getMentee(req, res)
-    .post (req, res) ->
+    .post bearer, (req, res) ->
       menteeController.updateMentee(req, res)
-    .delete (req, res) ->
+    .delete bearer, (req, res) ->
       menteeController.deleteMentee(req, res)
 
+  # Submission Routes
+  router.route "/submissions"
+    .get bearer, (req, res) ->
+      submissionController.getSubmissions(req, res)
+    .post bearer, (req, res) ->
+      submissionController.addSubmission(req, res)

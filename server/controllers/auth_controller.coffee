@@ -1,6 +1,7 @@
-jwt  = require 'jsonwebtoken'
-User = require '../models/user'
-
+jwt     = require 'jsonwebtoken'
+User    = require '../models/user'
+config  = require 'config'
+secrets  = config.get 'secrets'
 
 auth =
   validPassword: (username, password, done)->
@@ -39,13 +40,11 @@ auth =
 createToken = (user)->
   # remove hashed pass from returned object
   delete user.password
-  # TODO: move secret to ENV
-  return jwt.sign user, 'supersecret', { expiresIn: 7*24*60*60 }
+  return jwt.sign user, secrets.auth, { expiresIn: 7*24*60*60 }
 
 verifyToken = (token, done)->
   # Verify the JWT
-  # TODO: move to ENV
-  jwt.verify token, 'supersecret', (err, decoded) ->
+  jwt.verify token, secrets.auth, (err, decoded) ->
     if (err)
       return done null, false
     else
