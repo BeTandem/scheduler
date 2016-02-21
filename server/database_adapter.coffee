@@ -1,13 +1,13 @@
 "use strict"
 
-# Use mongoskin for database connections without callbacks
-MongoClient = require('mongoskin').MongoClient
+# Use mongojs for database connections without callbacks
+mongojs = require('mongojs')
 config = require 'config'
 
 # Load Database Configurations
 dbConfig = config.get 'dbConfig'
-dbPort = dbConfig.port
 dbHost = dbConfig.host
+dbPort = dbConfig.port
 dbName = dbConfig.name
 
 Database = () ->
@@ -16,9 +16,8 @@ Database = () ->
 
   # Establish a new connection
   init = ->
-    url = 'mongodb://'+dbHost+':'+dbPort+"/"+dbName
-    console.log("MongoClient: Initializing new connection to "+ url)
-    _db = MongoClient.connect url
+    console.log "New Mongodb connection to "+dbName+"@"+dbHost
+    _db = mongojs dbHost+":"+dbPort+"/"+dbName
 
     # Return object for later expansion of methods
     return {
