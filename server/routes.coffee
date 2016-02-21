@@ -1,8 +1,4 @@
 "use strict"
-roomController        = require './controllers/room_controller'
-mentorController      = require './controllers/mentor_controller'
-menteeController      = require './controllers/mentee_controller'
-submissionController  = require './controllers/submission_controller'
 authController        = require './controllers/auth_controller'
 passport              = require './authentication'
 morgan                = require 'morgan'
