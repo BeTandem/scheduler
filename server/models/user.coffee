@@ -1,5 +1,4 @@
 bcrypt  = require "bcrypt"
-mongo   = require "mongoskin"
 db      = require("../database_adapter").getDB()
 
 user = db.collection('user')
