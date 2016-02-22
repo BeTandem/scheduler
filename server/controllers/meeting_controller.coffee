@@ -16,6 +16,19 @@ meetingController =
       Meeting.methods.update(meeting_id, {emails:emails})
       res.status(200).send "schedule data goes here"
 
+  removeEmail: (req, res) ->
+    meeting_id = req.body.meeting_id
+    email = req.body.email
+    cursor = Meeting.methods.findById(meeting_id)
+    cursor.on 'data', (doc) ->
+      emails = doc.emails
+      if emails
+        if inEmailList(email, emails)
+          index = emails.indexOf email
+          emails.splice(index, 1)
+      Meeting.methods.update(meeting_id, {emails:emails})
+      res.status(200).send "schedule data goes here"
+
   addMeeting: (req, res) ->
     Meeting.methods.create req.body, (result) ->
       res.status(200).send result

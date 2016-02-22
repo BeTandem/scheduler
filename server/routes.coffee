@@ -40,6 +40,8 @@ module.exports = (app, router) ->
   router.route "/attendees"
     .post (req, res) ->
       meetingController.addEmail(req, res)
+    .delete (req, res) ->
+      meetingController.removeEmail(req, res)
 
   router.route "/meetings/"
     .post (req, res) ->
