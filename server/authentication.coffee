@@ -18,15 +18,15 @@ passport.use 'bearer', new bearerStrategy (token, done) ->
 
 # Google Strategy
 passport.use 'google', new googleStrategy({
-	session: false
-  clientID: config.googleAuthConfig.clientId
-  clientSecret: config.googleAuthConfig.clientSecret
-  callbackURL: config.googleAuthConfig.redirectUrl
-  scope: [
-    'openid'
-    'email'
-    'https://www.googleapis.com/auth/calendar'
-  ]
+session: false
+clientID: config.googleAuthConfig.clientId
+clientSecret: config.googleAuthConfig.clientSecret
+callbackURL: config.googleAuthConfig.redirectUrl
+scope: [
+  'openid'
+  'email'
+  'https://www.googleapis.com/auth/calendar'
+]
 }, (accessToken, refreshToken, profile, done) ->
 	console.log('refreshToken', refreshToken);
   done null, profile
