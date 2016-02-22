@@ -17,8 +17,8 @@ meetingController =
       res.status(200).send "schedule data goes here"
 
   addMeeting: (req, res) ->
-    Meeting.methods.create req.body
-    res.status(200).send "added"
+    Meeting.methods.create req.body, (result) ->
+      res.status(200).send result
 
 
 # Private Helpers
