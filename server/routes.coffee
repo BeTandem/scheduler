@@ -1,5 +1,6 @@
 "use strict"
 authController        = require './controllers/auth_controller'
+meetingController     = require './controllers/meeting_controller'
 passport              = require './authentication'
 morgan                = require 'morgan'
 
@@ -34,3 +35,12 @@ module.exports = (app, router) ->
 
   app.get "/auth/google/callback", googleReturn, (req,res) ->
     res.status(200).send 'woot'
+
+  # Meeting Routes
+  router.route "/attendees"
+    .post (req, res) ->
+      meetingController.addEmail(req, res)
+
+  router.route "/meetings/"
+    .post (req, res) ->
+      meetingController.addMeeting(req, res)
