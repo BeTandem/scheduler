@@ -28,6 +28,7 @@ passport.use 'google', new googleStrategy({
     'https://www.googleapis.com/auth/calendar'
   ]
 }, (accessToken, refreshToken, profile, done) ->
+	console.log('refreshToken', refreshToken);
   done null, profile
 )
 

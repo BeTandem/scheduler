@@ -14,6 +14,7 @@ module.exports = (app, router) ->
   googleReturn = passport.authenticate('google',
     successRedirect: '/'
     failureRedirect: '/login')
+  refreshGoogleToken = 
 
   app.get "/", (req, res) ->
     res.status(200).send "TandemApi"
