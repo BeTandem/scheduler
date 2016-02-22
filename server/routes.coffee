@@ -11,11 +11,10 @@ module.exports = (app, router) ->
 
   password = passport.authenticate 'password', { session: false }
   bearer = passport.authenticate 'bearer', { session: false }
-  google = passport.authenticate 'google'
+  google = passport.authenticate 'google', { accessType: 'offline'}
   googleReturn = passport.authenticate('google',
     successRedirect: '/'
     failureRedirect: '/login')
-  refreshGoogleToken = 
 
   app.get "/", (req, res) ->
     res.status(200).send "TandemApi"
