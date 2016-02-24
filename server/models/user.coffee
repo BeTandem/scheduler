@@ -20,7 +20,21 @@ User.methods =
       if err
         console.log(err)
       if callback
+        console.log "ADD USER RESULT", result
         callback err,result
+
+  update: (id, data, callback) ->
+    console.log "UPDATE", id
+    return Meeting.findAndModify {
+      query: {_id: mongojs.ObjectId(id)}
+      update: { $set: data }
+      new: true
+      }, (err, result) ->
+        if err
+          console.log(err)
+        else if callback
+          console.log "UPDATE USER RESULT", result
+          callback err, result
 
   findOne: (profileId, callback)->
     User.findOne profileId, (err, result) ->

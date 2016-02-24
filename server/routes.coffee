@@ -21,8 +21,9 @@ module.exports = (app, router) ->
 
   # Login/logout Routes
   router.route "/login"
-    .post password, (req, res) ->
-      res.status(200).send req.user
+    .post (req, res) ->
+      console.log req
+      authController.google(req, res)
 
   router.route "/logout"
     #this route is only useful for session based auth

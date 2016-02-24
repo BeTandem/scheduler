@@ -64,6 +64,6 @@ passport.use 'google', new googleStrategy({
             throw err
           done null, newUser
 )
-  
+
 
 module.exports = passport

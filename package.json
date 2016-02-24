@@ -19,6 +19,7 @@
     "cors": "^2.7.1",
     "express": "^4.13.3",
     "express-session": "^1.13.0",
+    "googleapis": "^2.1.7",
     "install": "^0.4.4",
     "jsonwebtoken": "^5.5.4",
     "kerberos": "0.0.17",
