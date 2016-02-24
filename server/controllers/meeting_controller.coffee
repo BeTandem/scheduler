@@ -17,7 +17,6 @@ meetingController =
       res.status(200).send "schedule data goes here"
 
   removeEmail: (req, res) ->
-    console.log req
     meeting_id = req.query.meeting_id
     email = req.query.email
     cursor = Meeting.methods.findById(meeting_id)
