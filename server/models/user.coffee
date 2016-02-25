@@ -1,14 +1,7 @@
-bcrypt  = require "bcrypt"
 db      = require("../database_adapter").getDB()
-
 User = db.collection('user')
 
 User.methods =
-  generateHash: (password)->
-    return bcrypt.hashSync(password, bcrypt.genSaltSync(8))
-
-  validPassword: (password, hash)->
-    return bcrypt.compareSync(password, hash)
 
   findById: (id, callback) ->
     return User.find {
@@ -21,6 +14,17 @@ User.methods =
         console.log(err)
       if callback
         callback err,result
+
+  update: (id, data, callback) ->
+    return Meeting.findAndModify {
+      query: {_id: mongojs.ObjectId(id)}
+      update: { $set: data }
+      new: true
+      }, (err, result) ->
+        if err
+          console.log(err)
+        else if callback
+          callback err, result
 
   findOne: (profileId, callback)->
     User.findOne profileId, (err, result) ->
