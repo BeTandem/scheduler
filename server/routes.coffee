@@ -22,7 +22,6 @@ module.exports = (app, router) ->
   # Login/logout Routes
   router.route "/login"
     .post (req, res) ->
-      console.log req
       authController.google(req, res)
 
   router.route "/logout"
