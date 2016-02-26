@@ -3,6 +3,10 @@ authController        = require './controllers/auth_controller'
 meetingController     = require './controllers/meeting_controller'
 passport              = require './authentication'
 morgan                = require 'morgan'
+googleapis            = require 'googleapis'
+config                = require 'config'
+User                  = require './models/user'
+db                    = require './database_adapter'
 
 module.exports = (app, router) ->
   app.use passport.initialize()
@@ -35,6 +39,29 @@ module.exports = (app, router) ->
 
   app.get "/auth/google/callback", googleReturn, (req,res) ->
     res.status(200).send 'woot'
+
+  router.route "/calendar/:id"
+    .get (req,res) ->
+      calendar = googleapis.calendar('v3')
+      User.methods.findOne { 'id': req.params.id }, (err, user) ->
+        if err
+          res.send(err)
+        else
+          OAuth2 = googleapis.auth.OAuth2
+          oauth2Client = new OAuth2 config.googleAuthConfig.clientId, config.googleAuthConfig.clientSecret, config.googleAuthConfig.redirectUrl
+          oauth2Client.setCredentials(user.auth)
+          calendar.events.list {calendarId: 'primary', auth: oauth2Client}, (err,moo)->
+            console.log(moo)
+            # if err
+            #   console.log 'The API returned an error: ' + err
+            # else
+            #   res.send(response.items)
+          #   console.log user.auth
+          null
+          
+          
+        # b = User.methods.findById 
+
 
   # Meeting Routes
   router.route "/attendees"
