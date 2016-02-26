@@ -1,7 +1,7 @@
 "use strict"
 authController        = require './controllers/auth_controller'
 meetingController     = require './controllers/meeting_controller'
-passport              = require './authentication'
+passport              = require './middlewears/passport'
 morgan                = require 'morgan'
 googleapis            = require 'googleapis'
 config                = require 'config'
@@ -13,12 +13,7 @@ module.exports = (app, router) ->
   app.use morgan('combined')
   app.use "/api/v1", router
 
-  password = passport.authenticate 'password', { session: false }
   bearer = passport.authenticate 'bearer', { session: false }
-  google = passport.authenticate 'google', { accessType: 'offline'}
-  googleReturn = passport.authenticate('google',
-    successRedirect: '/'
-    failureRedirect: '/login')
 
   app.get "/", (req, res) ->
     res.status(200).send "TandemApi"
@@ -33,15 +28,9 @@ module.exports = (app, router) ->
     .get authController.removeAuthentication, (req, res) ->
       res.status(200).send "Successfully logged out"
 
-  router.route "/auth/google"
-    .get google, (req,res) ->
-      res.status(200).send req
-
-  app.get "/auth/google/callback", googleReturn, (req,res) ->
-    res.status(200).send 'woot'
-
   router.route "/calendar/:id"
     .get (req,res) ->
+      # TODO: move all of this to a controller and use helper for gauth
       calendar = googleapis.calendar('v3')
       User.methods.findOne { 'id': req.params.id }, (err, user) ->
         if err
@@ -52,16 +41,18 @@ module.exports = (app, router) ->
           oauth2Client.setCredentials(user.auth)
           calendar.events.list {calendarId: 'primary', auth: oauth2Client}, (err,moo)->
             console.log(moo)
+            console.log(err)
             # if err
             #   console.log 'The API returned an error: ' + err
             # else
             #   res.send(response.items)
           #   console.log user.auth
+            res.send(moo)
           null
-          
-          
-        # b = User.methods.findById 
 
+
+
+        # b = User.methods.findById
 
   # Meeting Routes
   router.route "/attendees"
