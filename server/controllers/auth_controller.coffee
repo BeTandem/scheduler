@@ -1,5 +1,4 @@
 jwt         = require 'jsonwebtoken'
-googleapis  = require 'googleapis'
 googleAuth  = require '../helpers/auth/google'
 User        = require '../models/user'
 config      = require 'config'
@@ -7,7 +6,7 @@ secrets     = config.get 'secrets'
 
 auth =
 
-  google: (req, res) ->
+  googleLogin: (req, res) ->
     authCode = req.body.code
     clientId = req.body.clientId
     redirectUri = req.body.redirectUri
@@ -19,28 +18,36 @@ auth =
         res.status(500).send err
 
       #get user Info
-      googleAuth.getUserInfo oauth2Client, (err, googleUser) ->
-        if err
-          res.status(500).send err
-
-        # Build User for database
-        googleUser.token = createToken(googleUser)
-        googleUser.auth = tokens
-        User.methods.findOne { id: googleUser.id}, (err, user) ->
+      else
+        googleAuth.getUserInfo oauth2Client, (err, googleUser) ->
           if err
             res.status(500).send err
-
-          if user
-            user.token = googleUser.token
-            response = buildAuthResponse(user)
-            res.status(200).send response
           else
-            User.methods.addUser googleUser, (err, result) ->
+            # Build User for database
+            googleUser.token = createToken(googleUser)
+            googleUser.auth = tokens
+            User.methods.findOne { id: googleUser.id}, (err, user) ->
               if err
                 res.status(500).send err
-              else
-                response = buildAuthResponse(googleUser)
+
+              if user
+                user.token = googleUser.token
+                response = buildAuthResponse(user)
                 res.status(200).send response
+              else
+                User.methods.addUser googleUser, (err, result) ->
+                  if err
+                    res.status(500).send err
+                  else
+                    response = buildAuthResponse(googleUser)
+                    res.status(200).send response
+
+  getAuthClient: (user) ->
+    clientId = config.googleAuthConfig.clientId
+    redirectUri = config.googleAuthConfig.redirectUri
+    oauth2Client = googleAuth.getAuthClient clientId, redirectUri
+    oauth2Client.setCredentials user.auth
+    return oauth2Client
 
   validToken: (token, done)->
     # verify the token

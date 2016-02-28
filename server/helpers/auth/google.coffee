@@ -4,7 +4,7 @@ config      = require 'config'
 googleAuth =
 
   authenticate: (authCode, clientId, redirect_uri, callback) ->
-    oauth2Client = getOauth2Client clientId, redirect_uri
+    oauth2Client = buildAuthClient clientId, redirect_uri
     getAuthToken authCode, oauth2Client, (err, tokens) ->
       oauth2Client.setCredentials(tokens)
       if callback
@@ -31,6 +31,9 @@ googleAuth =
       if callback
         callback err, events
 
+  getAuthClient: (clientId, redirectUri) ->
+    return buildAuthClient clientId, redirectUri
+
 # Private Methods
 getAuthToken = (authCode, oauth2Client, callback)->
   oauth2Client.getToken authCode, (err, tokens)->
@@ -39,7 +42,7 @@ getAuthToken = (authCode, oauth2Client, callback)->
     if callback
       return callback err, tokens
 
-getOauth2Client = (clientId, redirectUri)->
+buildAuthClient = (clientId, redirectUri)->
   secret = config.googleAuthConfig.clientSecret
   OAuth2 = googleapis.auth.OAuth2
   oauth2Client = new OAuth2 clientId, secret, redirectUri
