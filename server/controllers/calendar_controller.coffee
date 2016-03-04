@@ -19,5 +19,4 @@ calendarController =
           else
             res.status(200).send(events)
 
-
 module.exports = calendarController

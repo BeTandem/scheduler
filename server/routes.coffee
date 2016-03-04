@@ -24,18 +24,9 @@ module.exports = (app, router) ->
     .post (req, res) ->
       authController.googleLogin(req, res)
 
-  router.route "/logout"
-    #this route is only useful for session based auth
-    .get authController.removeAuthentication, (req, res) ->
-      res.status(200).send "Successfully logged out"
-
   router.route "/calendar/:id"
     .get (req,res) ->
       calendarController.getCalendarEvents(req,res)
-
-
-
-        # b = User.methods.findById
 
   # Meeting Routes
   router.route "/attendees"
