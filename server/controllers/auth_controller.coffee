@@ -1,62 +1,53 @@
 jwt         = require 'jsonwebtoken'
-googleapis  = require 'googleapis'
+googleAuth  = require '../helpers/auth/google'
 User        = require '../models/user'
 config      = require 'config'
 secrets     = config.get 'secrets'
 
 auth =
-  validPassword: (username, password, done)->
-    # Password based authentication
-    User.find({username: username}).toArray (err, result)->
-      if result.length == 1
-        userObject = result[0]
-        if User.methods.validPassword(password, userObject.password)
-          # set up token authentication
-          token = createToken(userObject)
-          userObject.token = token
-          return done null, userObject
-      # return same message regardless of login problem
-      return done null, false, { message: 'Incorrect login.' }
 
-  google: (req, res) ->
-    auth_code = req.body.code
-    client_id = req.body.clientId
+  googleLogin: (req, res) ->
+    authCode = req.body.code
+    clientId = req.body.clientId
     redirectUri = req.body.redirectUri
     secret = config.googleAuthConfig.clientSecret
 
-    # Buil Oauth for Google
-    OAuth2 = googleapis.auth.OAuth2
-    oauth2Client = new OAuth2 client_id, secret, redirectUri
-    oauth2Client.getToken auth_code, (err, tokens)->
+    #Authenticate
+    googleAuth.authenticate authCode, clientId, redirectUri, (err, oauth2Client, tokens) ->
       if err
         res.status(500).send err
+
+      #get user Info
       else
-        # Make API request to google for user info
-        oauth2Client.setCredentials(tokens)
-        oauth2 = googleapis.oauth2('v2')
-        oauth2.userinfo.get {
-        auth: oauth2Client
-        }, (err, google_user) ->
-          # Save user & auth information in user object
-          google_user.token = createToken(google_user)
-          google_user.auth = tokens
-          User.methods.findOne { id: google_user.id}, (err, user) ->
-            if err
-              res.status(500).send err
-            else
+        googleAuth.getUserInfo oauth2Client, (err, googleUser) ->
+          if err
+            res.status(500).send err
+          else
+            # Build User for database
+            googleUser.token = createToken(googleUser)
+            googleUser.auth = tokens
+            User.methods.findOne { id: googleUser.id}, (err, user) ->
+              if err
+                res.status(500).send err
+
               if user
-                user.token = google_user.token
+                user.token = googleUser.token
                 response = buildAuthResponse(user)
                 res.status(200).send response
               else
-                User.methods.addUser google_user, (err, result) ->
+                User.methods.addUser googleUser, (err, result) ->
                   if err
                     res.status(500).send err
                   else
-                    response = buildAuthResponse(google_user)
+                    response = buildAuthResponse(googleUser)
                     res.status(200).send response
 
-          #TODO: save user info in db with access token
+  getAuthClient: (user) ->
+    clientId = config.googleAuthConfig.clientId
+    redirectUri = config.googleAuthConfig.redirectUri
+    oauth2Client = googleAuth.getAuthClient clientId, redirectUri
+    oauth2Client.setCredentials user.auth
+    return oauth2Client
 
   validToken: (token, done)->
     # verify the token
