@@ -23,10 +23,13 @@ meetingController =
       UsersFromEmails emails, (err, users) ->
         collectschedules users, (schedules) ->
           console.log schedules
-
-
-
-      res.status(200).send "schedule data goes here"
+        response = {}
+        response.tandem_users = (user.email for user in users)
+        if users.length
+          response.schedule = dummy_response
+        else
+          response.schedule = []
+        res.status(200).send response
 
   removeEmail: (req, res) ->
     meeting_id = req.query.meeting_id
@@ -39,7 +42,7 @@ meetingController =
           index = emails.indexOf email
           emails.splice(index, 1)
       Meeting.methods.update(meeting_id, {emails:emails})
-      res.status(200).send "schedule data goes here"
+      res.status(200).send dummy_response
 
   addMeeting: (req, res) ->
     Meeting.methods.create req.body, (result) ->
@@ -62,5 +65,33 @@ inEmailList = (email, email_list) ->
     if email == e
       return true
   return false
+
+dummy_response = [
+      day_code: 't'
+      morning: true
+      afternoon: false
+      evening: false
+    ,
+      day_code: 'w'
+      morning: true
+      afternoon: false
+      evening: true
+    ,
+      day_code: 'th'
+      morning: false
+      afternoon: true
+      evening: true
+    ,
+      day_code: 'f'
+      morning: true
+      afternoon: false
+      evening: false
+    ,
+      day_code: 'Sa'
+      morning: false
+      afternoon: false
+      evening: false
+  ]
+
 
 module.exports = meetingController
