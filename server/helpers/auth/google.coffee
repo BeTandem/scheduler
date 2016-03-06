@@ -33,26 +33,15 @@ googleAuth =
       if callback
         callback err, events
 
-  getCalendarFreeBusy: (oauth2Client, id, callback) ->
-    today = new Date()
-    weekFromToday = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000)
-    console.log weekFromToday.toString()
-    calendar.freebusy.query {
-      resource:
-        timeMin: today.toISOString()
-        timeMax: weekFromToday.toISOString()
-        items: [{
-          id: id
-        }]
-      auth: oauth2Client
-    }, (err, events)->
-      if err
-        console.log "Googleapis Calendar Events Error:", err
-      if callback
-        callback err, events
+  getCalendarsFromUsers: (userList, callback) ->
+    busyFreePromiseList = []
+    for user in userList
+      getStoredAuthClient user, (oauth2Client) ->
+        busyFreePromise = getCalendarFreeBusy(oauth2Client)
+        busyFreePromiseList.push busyFreePromise
 
-  getCalendarsFromUsers: (userList, eventsList, currentUser, callback) ->
-    getUsersCalendars userList, eventsList, currentUser, callback
+    Promise.all(busyFreePromiseList).then (eventsList) ->
+      callback(eventsList)
 
   getAuthClient: (user, callback) ->
     return getStoredAuthClient user, (oauth2Client) ->
@@ -104,18 +93,48 @@ buildAuthClient = (clientId, redirectUri)->
   oauth2Client = new OAuth2 clientId, secret, redirectUri
   return oauth2Client
 
-getUsersCalendars = (userList, eventsList, currentUser, callback) ->
-  if currentUser >= userList.length
-    return callback(eventsList)
-  oauth2Client = getStoredAuthClient(userList[currentUser])
-  calendar.events.list {
-    calendarId: 'primary'
+getCalendarIds = (oauth2Client, callback) ->
+  calendar.calendarList.list {
     auth: oauth2Client
-  }, (err, events) ->
+    minAccessRole: 'freeBusyReader'
+  }, (err, calendarIds) ->
     if err
-      console.log "Googleapis Get Users Calendars Error", err
-    eventsList.push(events)
-    currentUser++
-    return getUsersCalendars userList, eventsList, currentUser, callback
+      console.log "Get Calendar Ids Error:", err
+    if callback
+      callback(err, calendarIds)
+
+getEventsCalendar = (calendarId, oauth2Client)->
+  return new Promise (resolve, reject)->
+    calendar.events.list {
+      calendarId: calendarId || 'primary'
+      auth: oauth2Client
+    }, (err, events) ->
+      if err
+        console.log "Googleapis Get Users Calendars Error", err
+        reject(err)
+      else
+        console.log "resolving"
+        resolve(events)
+
+getCalendarFreeBusy = (oauth2Client) ->
+  today = new Date()
+  weekFromToday = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000)
+  return new Promise (resolve, reject) ->
+    getCalendarIds oauth2Client, (err, calendarList) ->
+      if err
+        reject err
+      calendarIds = ({id: cal.id} for cal in calendarList.items)
+      calendar.freebusy.query {
+        resource:
+          timeMin: today.toISOString()
+          timeMax: weekFromToday.toISOString()
+          items: calendarIds
+        auth: oauth2Client
+      }, (err, busyFree)->
+        if err
+          console.log "Googleapis Calendar Events Error:", err
+          reject err
+        else
+          resolve busyFree
 
 module.exports = googleAuth
