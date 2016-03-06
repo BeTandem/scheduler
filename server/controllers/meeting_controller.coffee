@@ -28,6 +28,7 @@ meetingController =
         if users.length
           response.schedule = dummy_response
         else
+          console.log("hello")
           response.schedule = []
         res.status(200).send response
 
