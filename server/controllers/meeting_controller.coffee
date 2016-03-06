@@ -22,7 +22,7 @@ meetingController =
       # Build out calendar data
       UsersFromEmails emails, (err, users) ->
         collectschedules users, (schedules) ->
-          console.log schedules
+          console.log "SCHEDULES", schedules
         response = {}
         response.tandem_users = (user.email for user in users)
         if users.length
@@ -55,7 +55,7 @@ UsersFromEmails = (emails, callback) ->
 
 collectschedules = (users, callback) ->
   if users.length
-    googleAuth.getCalendarsFromUsers(users, [], 0, callback)
+    googleAuth.getCalendarsFromUsers(users, callback)
 
 buildMeetingCalendar = (calendars) ->
   # Build the calendar availability
