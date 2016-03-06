@@ -5,6 +5,7 @@ googleAuth  = require "../helpers/auth/google"
 meetingController =
 
   addEmail: (req, res) ->
+    dummy_response = createDummyResponse()
     meeting_id = req.body.meeting_id
     email = req.body.email
     cursor = Meeting.methods.findById(meeting_id)
@@ -29,9 +30,11 @@ meetingController =
           response.schedule = dummy_response
         else
           response.schedule = []
+        console.log(dummy_response)
         res.status(200).send response
 
   removeEmail: (req, res) ->
+    dummy_response = createDummyResponse()
     meeting_id = req.query.meeting_id
     email = req.query.email
     cursor = Meeting.methods.findById(meeting_id)
@@ -42,7 +45,7 @@ meetingController =
           index = emails.indexOf email
           emails.splice(index, 1)
       Meeting.methods.update(meeting_id, {emails:emails})
-      res.status(200).send dummy_response
+      res.status(200).send {dummy_response}
 
   addMeeting: (req, res) ->
     Meeting.methods.create req.body, (result) ->
@@ -66,31 +69,38 @@ inEmailList = (email, email_list) ->
       return true
   return false
 
-dummy_response = [
+getRandomTrueFalse = () ->
+  if Math.round(Math.random()*10)%2 == 1
+    true
+  else
+    false
+
+createDummyResponse = () ->
+  return dummy_response = [
       day_code: 't'
-      morning: true
-      afternoon: false
-      evening: false
+      morning: getRandomTrueFalse()
+      afternoon: getRandomTrueFalse()
+      evening: getRandomTrueFalse()
     ,
       day_code: 'w'
-      morning: true
-      afternoon: false
-      evening: true
+      morning: getRandomTrueFalse()
+      afternoon: getRandomTrueFalse()
+      evening: getRandomTrueFalse()
     ,
       day_code: 'th'
-      morning: false
-      afternoon: true
-      evening: true
+      morning: getRandomTrueFalse()
+      afternoon: getRandomTrueFalse()
+      evening: getRandomTrueFalse()
     ,
       day_code: 'f'
-      morning: true
-      afternoon: false
-      evening: false
+      morning: getRandomTrueFalse()
+      afternoon: getRandomTrueFalse()
+      evening: getRandomTrueFalse()
     ,
       day_code: 'Sa'
-      morning: false
-      afternoon: false
-      evening: false
+      morning: getRandomTrueFalse()
+      afternoon: getRandomTrueFalse()
+      evening: getRandomTrueFalse()
   ]
 
 
