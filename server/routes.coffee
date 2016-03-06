@@ -1,20 +1,20 @@
 "use strict"
 authController        = require './controllers/auth_controller'
 meetingController     = require './controllers/meeting_controller'
-passport              = require './authentication'
+calendarController    = require './controllers/calendar_controller'
+passport              = require './middlewears/passport'
 morgan                = require 'morgan'
+googleapis            = require 'googleapis'
+config                = require 'config'
+User                  = require './models/user'
+db                    = require './database_adapter'
 
 module.exports = (app, router) ->
   app.use passport.initialize()
   app.use morgan('combined')
   app.use "/api/v1", router
 
-  password = passport.authenticate 'password', { session: false }
   bearer = passport.authenticate 'bearer', { session: false }
-  google = passport.authenticate 'google', { accessType: 'offline'}
-  googleReturn = passport.authenticate('google',
-    successRedirect: '/'
-    failureRedirect: '/login')
 
   app.get "/", (req, res) ->
     res.status(200).send "TandemApi"
@@ -22,19 +22,11 @@ module.exports = (app, router) ->
   # Login/logout Routes
   router.route "/login"
     .post (req, res) ->
-      authController.google(req, res)
+      authController.googleLogin(req, res)
 
-  router.route "/logout"
-    #this route is only useful for session based auth
-    .get authController.removeAuthentication, (req, res) ->
-      res.status(200).send "Successfully logged out"
-
-  router.route "/auth/google"
-    .get google, (req,res) ->
-      res.status(200).send req
-
-  app.get "/auth/google/callback", googleReturn, (req,res) ->
-    res.status(200).send 'woot'
+  router.route "/calendar/:id"
+    .get (req,res) ->
+      calendarController.getCalendarEvents(req,res)
 
   # Meeting Routes
   router.route "/attendees"

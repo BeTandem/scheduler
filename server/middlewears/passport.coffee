@@ -2,7 +2,7 @@
 
 passport        = require 'passport'
 bearerStrategy  = require('passport-http-bearer').Strategy
-authController  = require './controllers/auth_controller'
+authController  = require '../controllers/auth_controller'
 config          = require 'config'
 
 # Bearer Strategy for Token-based Auth
