@@ -27,7 +27,7 @@ User.methods =
       }, (err, result) ->
         if err
           console.log "Update user error:", err
-        else if callback
+        if callback
           callback err, result
 
   findOne: (profileId, callback)->
@@ -45,5 +45,15 @@ User.methods =
         console.log "Find user by email list error:", err
       if callback
         callback err, users
+
+  updateAuth: (googleId, tokens, callback) ->
+    return User.findAndModify {
+      query: {id: googleId}
+      update: { $set: { auth: tokens } }
+    }, (err, result) ->
+      if err || !result
+        console.log "Update user auth error:", err
+      if callback
+        calback(err, result)
 
 module.exports = User

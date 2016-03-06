@@ -55,7 +55,7 @@ UsersFromEmails = (emails, callback) ->
 
 collectschedules = (users, callback) ->
   if users.length
-    googleAuth.getCalendarsFromusers(users, [], 0, callback)
+    googleAuth.getCalendarsFromUsers(users, [], 0, callback)
 
 buildMeetingCalendar = (calendars) ->
   # Build the calendar availability

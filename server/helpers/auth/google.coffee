@@ -1,5 +1,6 @@
 googleapis  = require 'googleapis'
 config      = require 'config'
+User        = require '../../models/user'
 
 oauth2 = googleapis.oauth2('v2')
 calendar = googleapis.calendar('v3')
@@ -50,19 +51,35 @@ googleAuth =
       if callback
         callback err, events
 
-  getCalendarsFromusers: (userList, eventsList, currentUser, callback) ->
+  getCalendarsFromUsers: (userList, eventsList, currentUser, callback) ->
     getUsersCalendars userList, eventsList, currentUser, callback
 
-  getAuthClient: (clientId, redirectUri) ->
-    return buildAuthClient clientId, redirectUri
+  getAuthClient: (user, callback) ->
+    return getStoredAuthClient user, (oauth2Client) ->
+      if callback
+        callback oauth2Client
 
 # Private Methods
-getStoredAuthClient = (user) ->
+getStoredAuthClient = (user, callback) ->
   clientId = config.googleAuthConfig.clientId
   redirectUri = config.googleAuthConfig.redirectUri
-  oauth2Client = googleAuth.getAuthClient clientId, redirectUri
+  oauth2Client = buildAuthClient clientId, redirectUri
   oauth2Client.setCredentials user.auth
-  return oauth2Client
+
+  # Need to refresh access token
+  if user.auth.expiry_date < (new Date).getTime()
+    console.log("Refreshing Access Token")
+    tokenPromise = refreshAccessToken(oauth2Client)
+    tokenPromise.then (tokens)->
+      console.log(user.id)
+      User.methods.updateAuth user.id, tokens
+      oauth2Client.setCredentials tokens
+      if callback
+        callback(oauth2Client)
+
+  else
+    if callback
+      callback(oauth2Client)
 
 getAuthToken = (authCode, oauth2Client, callback)->
   oauth2Client.getToken authCode, (err, tokens)->
@@ -70,6 +87,16 @@ getAuthToken = (authCode, oauth2Client, callback)->
       console.log "Googleapis Token Error:", err
     if callback
       return callback err, tokens
+
+refreshAccessToken = (oauth2Client) ->
+  tokensPromise = new Promise (resolve, reject) ->
+    oauth2Client.refreshAccessToken (err, tokens)->
+      if err
+        console.log "Refresh Access Token Error:", err
+        reject(err)
+      else
+        resolve(tokens)
+  return tokensPromise
 
 buildAuthClient = (clientId, redirectUri)->
   secret = config.googleAuthConfig.clientSecret

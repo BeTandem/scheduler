@@ -42,12 +42,11 @@ auth =
                     response = buildAuthResponse(googleUser)
                     res.status(200).send response
 
-  getAuthClient: (user) ->
-    clientId = config.googleAuthConfig.clientId
-    redirectUri = config.googleAuthConfig.redirectUri
-    oauth2Client = googleAuth.getAuthClient clientId, redirectUri
-    oauth2Client.setCredentials user.auth
-    return oauth2Client
+  getAuthClient: (user, callback) ->
+    googleAuth.getAuthClient user, (oauth2Client) ->
+      oauth2Client.setCredentials user.auth
+      if callback
+        callback oauth2Client
 
   validToken: (token, done)->
     # verify the token

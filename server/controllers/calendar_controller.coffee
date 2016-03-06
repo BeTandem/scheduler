@@ -12,11 +12,11 @@ calendarController =
       if err
         res.status(500).send(err)
       else
-        oauth2Client = authController.getAuthClient(user)
-        googleAuth.getCalendarEventsList oauth2Client, (err, events) ->
-          if err
-            res.status(500).send(err)
-          else
-            res.status(200).send(events)
+        authController.getAuthClient user, (oauth2Client) ->
+          googleAuth.getCalendarEventsList oauth2Client, (err, events) ->
+            if err
+              res.status(500).send(err)
+            else
+              res.status(200).send(events)
 
 module.exports = calendarController
