@@ -65,8 +65,8 @@ meetingController =
             emailsArr.push toPush
 
           meetingInfo =
-            meetingSummary: "test summary"
-            meetingLocation: "test location"
+            meetingSummary: req.body.meetingSummary
+            meetingLocation: req.body.meetingLocation
             meetingAttendees: emailsArr
           googleAuth.sendCalendarInvite(oauth2Client,meetingInfo)
           res.status(200).send("success")
