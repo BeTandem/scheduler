@@ -25,7 +25,7 @@ meetingController =
         collectschedules users, (schedules) ->
           console.log "SCHEDULES", schedules
         response = {}
-        response.tandem_users = (user.email for user in users)
+        response.tandem_users = ({name: user.name, email: user.email} for user in users)
         if users.length
           response.schedule = dummy_response
         else
