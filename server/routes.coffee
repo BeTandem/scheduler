@@ -2,7 +2,7 @@
 authController        = require './controllers/auth_controller'
 meetingController     = require './controllers/meeting_controller'
 calendarController    = require './controllers/calendar_controller'
-passport              = require './middlewears/passport'
+passport              = require './middlewares/passport'
 morgan                = require 'morgan'
 googleapis            = require 'googleapis'
 config                = require 'config'
@@ -27,6 +27,10 @@ module.exports = (app, router) ->
   router.route "/calendar/:id"
     .get (req,res) ->
       calendarController.getCalendarEvents(req,res)
+
+  router.route   "/sendMeetingInvite"
+    .post bearer, (req,res) ->
+      meetingController.sendEmailInvites(req,res)
 
   # Meeting Routes
   router.route "/attendees"
