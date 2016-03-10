@@ -48,6 +48,32 @@ googleAuth =
       if callback
         callback oauth2Client
 
+  sendCalendarInvite: (oauth2Client, meetingInfo) ->
+    event = {
+      'summary': meetingInfo.meetingSummary,
+      'location': meetingInfo.meetingLocation,
+      'start': {
+        'dateTime': '2016-03-28T09:00:00-07:00',
+        'timeZone': 'America/Los_Angeles',
+      },
+      'end': {
+        'dateTime': '2016-03-28T17:00:00-07:00',
+        'timeZone': 'America/Los_Angeles',
+      },
+      'attendees': meetingInfo.meetingAttendees
+    }
+
+    calendar.events.insert {
+      auth: oauth2Client
+      calendarId: 'primary'
+      resource: event
+      sendNotifications: true
+    }, (err, event) ->
+      if err
+        console.log 'There was an error contacting the Calendar service: ' + err
+        return err
+      console.log 'Event created: %s', event.htmlLink
+
 # Private Methods
 getStoredAuthClient = (user, callback) ->
   clientId = config.googleAuthConfig.clientId

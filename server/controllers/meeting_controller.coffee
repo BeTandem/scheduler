@@ -1,6 +1,8 @@
 Meeting     = require "../models/meeting"
 User        = require "../models/user"
 googleAuth  = require "../helpers/auth/google"
+googleapi   = require 'googleapis'
+config      = require 'config'
 
 meetingController =
 
@@ -30,7 +32,6 @@ meetingController =
           response.schedule = dummy_response
         else
           response.schedule = []
-        console.log(dummy_response)
         res.status(200).send response
 
   removeEmail: (req, res) ->
@@ -50,6 +51,27 @@ meetingController =
   addMeeting: (req, res) ->
     Meeting.methods.create req.body, (result) ->
       res.status(200).send result
+
+  sendEmailInvites: (req,res) ->
+    meeting_id = req.body.meeting_id
+    cursor = Meeting.methods.findById meeting_id
+    user_id = req.user.id
+    User.methods.findByGoogleId user_id, (err,user) ->
+      googleAuth.getAuthClient user[0], (oauth2Client) ->
+        cursor.on 'data', (doc) ->
+          emailsArr = []
+          for email in doc.emails
+            toPush = {email}
+            emailsArr.push toPush
+
+          meetingInfo =
+            meetingSummary: req.body.meetingSummary
+            meetingLocation: req.body.meetingLocation
+            meetingAttendees: emailsArr
+          googleAuth.sendCalendarInvite(oauth2Client,meetingInfo)
+          res.status(200).send("success")
+
+
 
 # Private Helpers
 UsersFromEmails = (emails, callback) ->
