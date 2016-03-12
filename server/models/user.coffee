@@ -1,11 +1,21 @@
 db      = require("../database_adapter").getDB()
 User = db.collection('user')
+mongojs = require 'mongojs'
 
 User.methods =
 
   findById: (id, callback) ->
     return User.find {
       _id: mongojs.ObjectId(id)
+    }, (err, user) ->
+      if err
+        console.log "Find user by id error:", err
+      if callback
+        callback err, user
+
+  findByGoogleId: (id, callback) ->
+    return User.find {
+      id: id
     }, (err, user) ->
       if err
         console.log "Find user by id error:", err

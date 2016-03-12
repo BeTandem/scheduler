@@ -53,11 +53,11 @@ googleAuth =
       'summary': meetingInfo.meetingSummary,
       'location': meetingInfo.meetingLocation,
       'start': {
-        'dateTime': '2015-05-28T09:00:00-07:00',
+        'dateTime': '2016-03-28T09:00:00-07:00',
         'timeZone': 'America/Los_Angeles',
       },
       'end': {
-        'dateTime': '2015-05-28T17:00:00-07:00',
+        'dateTime': '2016-03-28T17:00:00-07:00',
         'timeZone': 'America/Los_Angeles',
       },
       'attendees': meetingInfo.meetingAttendees
@@ -67,6 +67,7 @@ googleAuth =
       auth: oauth2Client
       calendarId: 'primary'
       resource: event
+      sendNotifications: true
     }, (err, event) ->
       if err
         console.log 'There was an error contacting the Calendar service: ' + err

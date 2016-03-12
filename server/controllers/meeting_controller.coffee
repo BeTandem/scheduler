@@ -56,8 +56,8 @@ meetingController =
     meeting_id = req.body.meeting_id
     cursor = Meeting.methods.findById meeting_id
     user_id = req.user.id
-    User.methods.findById user_id, (user) ->
-      googleAuth.getAuthClient user, (oauth2Client) ->
+    User.methods.findByGoogleId user_id, (err,user) ->
+      googleAuth.getAuthClient user[0], (oauth2Client) ->
         cursor.on 'data', (doc) ->
           emailsArr = []
           for email in doc.emails
@@ -65,11 +65,11 @@ meetingController =
             emailsArr.push toPush
 
           meetingInfo =
-            meetingSummary: "test summary"
-            meetingLocation: "test location"
+            meetingSummary: req.body.meetingSummary
+            meetingLocation: req.body.meetingLocation
             meetingAttendees: emailsArr
-
-          res.status(200).send googleAuth.sendCalendarInvite(oauth2Client,meetingInfo)
+          googleAuth.sendCalendarInvite(oauth2Client,meetingInfo)
+          res.status(200).send("success")
 
 
 
