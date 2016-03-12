@@ -1,7 +1,6 @@
 Meeting     = require "../models/meeting"
 User        = require "../models/user"
 googleAuth  = require "../helpers/auth/google"
-googleapi   = require 'googleapis'
 config      = require 'config'
 
 meetingController =
