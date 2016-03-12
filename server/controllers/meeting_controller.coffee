@@ -3,6 +3,8 @@ User        = require "../models/user"
 googleAuth  = require "../helpers/auth/google"
 googleapi   = require 'googleapis'
 config      = require 'config'
+_           = require 'underscore'
+moment      = require 'moment', 'moment-range'
 
 meetingController =
 
@@ -72,6 +74,21 @@ meetingController =
           res.status(200).send("success")
 
 
+  buildMeetingCalendar: (req,res,emails) ->
+    relCals = []
+    freeBusy = []
+    UsersFromEmails emails, (err, users) ->
+      googleAuth.getCalendarsFromUsers users, (cals) ->
+        for cal in cals
+          for email in emails
+            if cal.calendars[email]
+              relCals.push cal.calendars[email]
+        for times in relCals
+          freeBusy.push times.busy
+        freeBusy = _.flatten freeBusy
+        # moment js difference stuff goes here!
+
+
 
 # Private Helpers
 UsersFromEmails = (emails, callback) ->
@@ -79,7 +96,7 @@ UsersFromEmails = (emails, callback) ->
   User.methods.findByEmailList emails, callback
 
 collectschedules = (users, callback) ->
-  if users.length
+  if users.getCalendarsFromUsers
     googleAuth.getCalendarsFromUsers(users, callback)
 
 buildMeetingCalendar = (calendars) ->
