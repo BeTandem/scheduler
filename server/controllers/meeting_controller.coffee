@@ -12,10 +12,10 @@ afternoonStartHour=12
 eveningStartHour=16
 dayEndHour=20
 
+
 meetingController =
 
   addEmail: (req, res) ->
-    dummy_response = createDummyResponse()
     meeting_id = req.body.meeting_id
     email = req.body.email
     cursor = Meeting.methods.findById(meeting_id)
@@ -38,7 +38,6 @@ meetingController =
         res.status(200).send response
 
   removeEmail: (req, res) ->
-    dummy_response = createDummyResponse()
     response = {}
     meeting_id = req.query.meeting_id
     email = req.query.email
@@ -79,6 +78,8 @@ meetingController =
           googleAuth.sendCalendarInvite(oauth2Client,meetingInfo)
           res.status(200).send("success")
 
+
+# Private Helpers
 buildMeetingCalendar = (emails, callback) ->
   relCals = []
   freeBusy = []
@@ -188,62 +189,20 @@ createWeekCalendarChunks = ()->
 
   return calendarChunks
 
-
 isTimeRangeAvailble = (range, busyRanges) ->
   for busy in busyRanges
     if range.overlaps(busy)
       return false
   return true
 
-
-# Private Helpers
 UsersFromEmails = (emails, callback) ->
   #collect google Ids from user db from emails
   User.methods.findByEmailList emails, callback
-
-collectschedules = (users, callback) ->
-  if users.getCalendarsFromUsers
-    googleAuth.getCalendarsFromUsers(users, callback)
 
 inEmailList = (email, email_list) ->
   for e in email_list
     if email == e
       return true
   return false
-
-getRandomTrueFalse = () ->
-  if Math.round(Math.random()*10)%2 == 1
-    true
-  else
-    false
-
-createDummyResponse = () ->
-  return dummy_response = [
-      day_code: 't'
-      morning: getRandomTrueFalse()
-      afternoon: getRandomTrueFalse()
-      evening: getRandomTrueFalse()
-    ,
-      day_code: 'w'
-      morning: getRandomTrueFalse()
-      afternoon: getRandomTrueFalse()
-      evening: getRandomTrueFalse()
-    ,
-      day_code: 'th'
-      morning: getRandomTrueFalse()
-      afternoon: getRandomTrueFalse()
-      evening: getRandomTrueFalse()
-    ,
-      day_code: 'f'
-      morning: getRandomTrueFalse()
-      afternoon: getRandomTrueFalse()
-      evening: getRandomTrueFalse()
-    ,
-      day_code: 'Sa'
-      morning: getRandomTrueFalse()
-      afternoon: getRandomTrueFalse()
-      evening: getRandomTrueFalse()
-  ]
-
 
 module.exports = meetingController
