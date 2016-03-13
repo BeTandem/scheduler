@@ -31,14 +31,10 @@ meetingController =
       Meeting.methods.update(meeting_id, {emails:emails})
 
       # Build out calendar data
-      UsersFromEmails emails, (err, users) ->
-        collectschedules users, (schedules) ->
+      buildMeetingCalendar emails, (users, availability)->
         response = {}
         response.tandem_users = ({name: user.name, email: user.email} for user in users)
-        if users.length
-          response.schedule = dummy_response
-        else
-          response.schedule = dummy_response
+        response.schedule = availability
         res.status(200).send response
 
   removeEmail: (req, res) ->
@@ -54,8 +50,11 @@ meetingController =
           index = emails.indexOf email
           emails.splice(index, 1)
       Meeting.methods.update(meeting_id, {emails:emails})
-      response.schedule = dummy_response
-      res.status(200).send response
+      buildMeetingCalendar emails, (users, availability)->
+        response = {}
+        response.tandem_users = ({name: user.name, email: user.email} for user in users)
+        response.schedule = availability
+        res.status(200).send response
 
   addMeeting: (req, res) ->
     Meeting.methods.create req.body, (result) ->
@@ -80,21 +79,21 @@ meetingController =
           googleAuth.sendCalendarInvite(oauth2Client,meetingInfo)
           res.status(200).send("success")
 
-  buildMeetingCalendar: (req,res,emails) ->
-    relCals = []
-    freeBusy = []
-    UsersFromEmails emails, (err, users) ->
-      googleAuth.getCalendarsFromUsers users, (cals) ->
-        for calObject in cals
-          for name, calendar of calObject.calendars
-            relCals.push calendar
-        for times in relCals
-          freeBusy.push times.busy
-        freeBusy = _.flatten freeBusy
-        # moment js difference stuff goes here!
-#        console.log freeBusy
-        groupAvailability = getAvailabilityRanges(freeBusy)
-        res.send(groupAvailability)
+buildMeetingCalendar = (emails, callback) ->
+  relCals = []
+  freeBusy = []
+  UsersFromEmails emails, (err, users) ->
+    googleAuth.getCalendarsFromUsers users, (cals) ->
+      for calObject in cals
+        for name, calendar of calObject.calendars
+          relCals.push calendar
+      for times in relCals
+        freeBusy.push times.busy
+      freeBusy = _.flatten freeBusy
+
+      groupAvailability = getAvailabilityRanges(freeBusy)
+      if callback
+        callback(users, groupAvailability)
 
 getAvailabilityRanges = (timesArray)->
   #TODO: move length into passed var

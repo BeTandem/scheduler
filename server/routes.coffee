@@ -42,7 +42,3 @@ module.exports = (app, router) ->
   router.route "/meetings/"
     .post (req, res) ->
       meetingController.addMeeting(req, res)
-
-  router.route "/test"
-    .post (req,res) ->
-      meetingController.buildMeetingCalendar(req,res,["alca5676@colorado.edu", "acampbell@twitter.com"])
