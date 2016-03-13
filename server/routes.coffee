@@ -28,9 +28,9 @@ module.exports = (app, router) ->
     .get (req,res) ->
       calendarController.getCalendarEvents(req,res)
 
-  router.route   "/sendMeetingInvite"
-    .post bearer, (req,res) ->
-      meetingController.sendEmailInvites(req,res)
+  # router.route   "/sendMeetingInvite"
+  #   .post bearer, (req,res) ->
+  #     meetingController.sendEmailInvites(req,res)
 
   # Meeting Routes
   router.route "/attendees"

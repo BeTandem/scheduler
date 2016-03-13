@@ -1,7 +1,6 @@
 Meeting     = require "../models/meeting"
 User        = require "../models/user"
 googleAuth  = require "../helpers/auth/google"
-googleapi   = require 'googleapis'
 config      = require 'config'
 _           = require 'underscore'
 moment      = require 'moment', 'moment-range'
@@ -27,17 +26,17 @@ meetingController =
       # Build out calendar data
       UsersFromEmails emails, (err, users) ->
         collectschedules users, (schedules) ->
-          console.log "SCHEDULES", schedules
         response = {}
         response.tandem_users = ({name: user.name, email: user.email} for user in users)
         if users.length
           response.schedule = dummy_response
         else
-          response.schedule = []
+          response.schedule = dummy_response
         res.status(200).send response
 
   removeEmail: (req, res) ->
     dummy_response = createDummyResponse()
+    response = {}
     meeting_id = req.query.meeting_id
     email = req.query.email
     cursor = Meeting.methods.findById(meeting_id)
@@ -48,7 +47,8 @@ meetingController =
           index = emails.indexOf email
           emails.splice(index, 1)
       Meeting.methods.update(meeting_id, {emails:emails})
-      res.status(200).send {dummy_response}
+      response.schedule = dummy_response
+      res.status(200).send response
 
   addMeeting: (req, res) ->
     Meeting.methods.create req.body, (result) ->
