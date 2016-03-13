@@ -5,15 +5,17 @@
   */
 
 var gulp       = require('gulp'),
-	  coffeelint = require('gulp-coffeelint'),
-		nodemon    = require('gulp-nodemon'),
-		coffee     = require('gulp-coffee'),
-		clean      = require('gulp-clean'),
-		watch      = require('gulp-watch'),
-		gutil      = require('gulp-util'),
+    coffeelint = require('gulp-coffeelint'),
+    nodemon    = require('gulp-nodemon'),
+    coffee     = require('gulp-coffee'),
+    clean      = require('gulp-clean'),
+    watch      = require('gulp-watch'),
+    gutil      = require('gulp-util'),
     uglify     = require('gulp-uglify'),
-		stylish    = require('coffeelint-stylish'),
-    mocha      = require('gulp-mocha');
+    stylish    = require('coffeelint-stylish'),
+    mocha      = require('gulp-mocha'),
+    sourcemaps = require('gulp-sourcemaps');
+
 
 /**
   * Gulp Configurations
@@ -56,7 +58,9 @@ gulp.task('coffee', function() {
   // Development Build
   else{
     gulp.src('./server/**/*.coffee')
+      .pipe(sourcemaps.init())
       .pipe(coffee({bare: true}).on('error', gutil.log))
+      .pipe(sourcemaps.write())
       .pipe(gulp.dest('./dist'));
   }
 
@@ -98,6 +102,7 @@ gulp.task('test', function(){
 // Start Nodemon Server
 gulp.task('nodemon', function () {
   nodemon({
+    exec: 'node --debug',
     script: './dist/index.js',
     ext: 'coffee',
     env: { 'NODE_ENV': config.env }
