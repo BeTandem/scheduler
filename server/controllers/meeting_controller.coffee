@@ -3,7 +3,14 @@ User        = require "../models/user"
 googleAuth  = require "../helpers/auth/google"
 config      = require 'config'
 _           = require 'underscore'
-moment      = require 'moment', 'moment-range'
+moment      = require 'moment'
+require 'moment-range'
+
+#constants
+morningStartHour=8
+afternoonStartHour=12
+eveningStartHour=16
+dayEndHour=20
 
 meetingController =
 
@@ -73,21 +80,121 @@ meetingController =
           googleAuth.sendCalendarInvite(oauth2Client,meetingInfo)
           res.status(200).send("success")
 
-
   buildMeetingCalendar: (req,res,emails) ->
     relCals = []
     freeBusy = []
     UsersFromEmails emails, (err, users) ->
       googleAuth.getCalendarsFromUsers users, (cals) ->
-        for cal in cals
-          for email in emails
-            if cal.calendars[email]
-              relCals.push cal.calendars[email]
+        for calObject in cals
+          for name, calendar of calObject.calendars
+            relCals.push calendar
         for times in relCals
           freeBusy.push times.busy
         freeBusy = _.flatten freeBusy
         # moment js difference stuff goes here!
+#        console.log freeBusy
+        groupAvailability = getAvailabilityRanges(freeBusy)
+        res.send(groupAvailability)
 
+getAvailabilityRanges = (timesArray)->
+  #TODO: move length into passed var
+  lengthOfMeeting = 60 #in minutes
+  duration = moment.duration(lengthOfMeeting, 'minutes')
+
+  # Build Busy Ranges
+  busyRanges = []
+  for busy in timesArray
+    start = moment(busy.start)
+    end = moment(busy.end)
+    range = moment.range(start,end)
+    busyRanges.push(range)
+
+  #Build Out fifteen min range for iteration
+  now = moment()
+  fifteenMinutes = moment.duration(15, 'minutes')
+  newTime =  moment(now).add(fifteenMinutes)
+  fifteenMinRange = moment.range(now, newTime)
+
+  #retrieve relevant calendar chunks
+  calendarChunks = createWeekCalendarChunks()
+
+  availableRanges = []
+  for day in calendarChunks
+    dayObj =
+      day_code:day.day_code
+    delete day['day_code']
+
+    for key, timeRange of day
+      dayObj[key] = []
+      if timeRange
+        timeRange.by fifteenMinRange, (time) ->
+          newRange = moment.range(time, moment(time).add(duration, 'minutes'))
+          if isTimeRangeAvailble(newRange, busyRanges)
+            dayObj[key].push(newRange)
+
+    availableRanges.push(dayObj)
+
+  return availableRanges
+
+createWeekCalendarChunks = ()->
+  calendarChunks = []
+
+  # Get Range
+  nowTime = moment()
+  weekFromNow = moment(nowTime).add(moment.duration(4, 'days'))
+  week = moment.range(nowTime, weekFromNow)
+
+  #iterate through days to create time chunks
+  week.by 'days', (day)->
+    dayObj =
+      day_code: day.format('dd')
+      morning: null
+      afternoon: null
+      evening: null
+
+    #TODO: Refactor these chunk creations into a simple function
+    time =
+      year: day.year()
+      month: day.month()
+      day: day.date()
+
+    #create morning Range
+    time.hour = morningStartHour
+    mornStart = moment(time)
+    time.hour = afternoonStartHour
+    mornEnd = moment(time)
+    morning = moment.range(mornStart, mornEnd)
+    if nowTime.unix() < mornStart.unix()
+      dayObj.morning = morning
+
+    #create afternoon Range
+    time.hour = afternoonStartHour
+    aftStart = moment(time)
+    time.hour = eveningStartHour
+    aftEnd = moment(time)
+    afternoon = moment.range(aftStart, aftEnd)
+    if nowTime.unix() < aftStart.unix()
+      dayObj.afternoon = afternoon
+
+    #create evening Range
+    time.hour = eveningStartHour
+    evStart = moment(time)
+    time.hour = dayEndHour
+    evEnd = moment(time)
+    evening = moment.range(evStart, evEnd)
+    if nowTime.unix() < evStart.unix()
+      dayObj.evening = evening
+
+    calendarChunks.push dayObj
+
+  return calendarChunks
+
+
+isTimeRangeAvailble = (range, busyRanges) ->
+  for busy in busyRanges
+    if range.overlaps(busy)
+      return false
+  return true
 
 
 # Private Helpers
@@ -98,9 +205,6 @@ UsersFromEmails = (emails, callback) ->
 collectschedules = (users, callback) ->
   if users.getCalendarsFromUsers
     googleAuth.getCalendarsFromUsers(users, callback)
-
-buildMeetingCalendar = (calendars) ->
-  # Build the calendar availability
 
 inEmailList = (email, email_list) ->
   for e in email_list

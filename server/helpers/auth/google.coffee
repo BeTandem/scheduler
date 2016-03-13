@@ -122,7 +122,7 @@ buildAuthClient = (clientId, redirectUri)->
 getCalendarIds = (oauth2Client, callback) ->
   calendar.calendarList.list {
     auth: oauth2Client
-    minAccessRole: 'freeBusyReader'
+    minAccessRole: 'owner'
   }, (err, calendarIds) ->
     if err
       console.log "Get Calendar Ids Error:", err
