@@ -129,7 +129,7 @@ getAvailabilityRanges = (timesArray) ->
       if timeRange
         timeRange.by fifteenMinRange, (time) ->
           newRange = moment.range(time, moment(time).add(duration, 'minutes'))
-          if isTimeRangeAvailble(newRange, busyRanges)
+          if isTimeRangeAvailable(newRange, busyRanges)
             dayObj[key].push(newRange)
 
     availableRanges.push(dayObj)
@@ -189,7 +189,7 @@ createWeekCalendarChunks = () ->
 
   return calendarChunks
 
-isTimeRangeAvailble = (range, busyRanges) ->
+isTimeRangeAvailable = (range, busyRanges) ->
   for busy in busyRanges
     if range.overlaps(busy)
       return false
