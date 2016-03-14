@@ -28,10 +28,10 @@ meetingController =
           emails.push email
       else
         emails = [email]
-      Meeting.methods.update(meeting_id, {emails:emails})
+      Meeting.methods.update(meeting_id, {emails: emails})
 
       # Build out calendar data
-      buildMeetingCalendar emails, (users, availability)->
+      buildMeetingCalendar emails, (users, availability) ->
         response = {}
         response.tandem_users = ({name: user.name, email: user.email} for user in users)
         response.schedule = availability
@@ -48,8 +48,8 @@ meetingController =
         if inEmailList(email, emails)
           index = emails.indexOf email
           emails.splice(index, 1)
-      Meeting.methods.update(meeting_id, {emails:emails})
-      buildMeetingCalendar emails, (users, availability)->
+      Meeting.methods.update(meeting_id, {emails: emails})
+      buildMeetingCalendar emails, (users, availability) ->
         response = {}
         response.tandem_users = ({name: user.name, email: user.email} for user in users)
         response.schedule = availability
@@ -59,11 +59,11 @@ meetingController =
     Meeting.methods.create req.body, (result) ->
       res.status(200).send result
 
-  sendEmailInvites: (req,res) ->
+  sendEmailInvites: (req, res) ->
     meeting_id = req.body.meeting_id
     cursor = Meeting.methods.findById meeting_id
     user_id = req.user.id
-    User.methods.findByGoogleId user_id, (err,user) ->
+    User.methods.findByGoogleId user_id, (err, user) ->
       googleAuth.getAuthClient user[0], (oauth2Client) ->
         cursor.on 'data', (doc) ->
           emailsArr = []
@@ -75,7 +75,7 @@ meetingController =
             meetingSummary: req.body.meetingSummary
             meetingLocation: req.body.meetingLocation
             meetingAttendees: emailsArr
-          googleAuth.sendCalendarInvite(oauth2Client,meetingInfo)
+          googleAuth.sendCalendarInvite(oauth2Client, meetingInfo)
           res.status(200).send("success")
 
 
@@ -96,7 +96,7 @@ buildMeetingCalendar = (emails, callback) ->
       if callback
         callback(users, groupAvailability)
 
-getAvailabilityRanges = (timesArray)->
+getAvailabilityRanges = (timesArray) ->
   #TODO: move length into passed var
   lengthOfMeeting = 60 #in minutes
   duration = moment.duration(lengthOfMeeting, 'minutes')
@@ -106,7 +106,7 @@ getAvailabilityRanges = (timesArray)->
   for busy in timesArray
     start = moment(busy.start)
     end = moment(busy.end)
-    range = moment.range(start,end)
+    range = moment.range(start, end)
     busyRanges.push(range)
 
   #Build Out fifteen min range for iteration
@@ -121,7 +121,7 @@ getAvailabilityRanges = (timesArray)->
   availableRanges = []
   for day in calendarChunks
     dayObj =
-      day_code:day.day_code
+      day_code: day.day_code
     delete day['day_code']
 
     for key, timeRange of day
@@ -136,7 +136,7 @@ getAvailabilityRanges = (timesArray)->
 
   return availableRanges
 
-createWeekCalendarChunks = ()->
+createWeekCalendarChunks = () ->
   calendarChunks = []
 
   # Get Range
