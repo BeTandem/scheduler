@@ -34,11 +34,11 @@ module.exports = (app, router) ->
 
   # Meeting Routes
   router.route "/attendees"
-    .post (req, res) ->
+    .post bearer, (req, res) ->
       meetingController.addEmail(req, res)
-    .delete (req, res) ->
+    .delete bearer, (req, res) ->
       meetingController.removeEmail(req, res)
 
   router.route "/meetings/"
-    .post (req, res) ->
+    .post bearer, (req, res) ->
       meetingController.addMeeting(req, res)

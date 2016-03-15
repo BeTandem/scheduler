@@ -22,13 +22,19 @@ meetingController =
     cursor.on 'data', (doc) ->
 
       # Update the email list && save to meeting
+      initiator = doc.meeting_initiator
       emails = doc.emails
       if emails
         if !inEmailList(email, emails)
           emails.push email
       else
         emails = [email]
+
       Meeting.methods.update(meeting_id, {emails: emails})
+
+      # Append meeting initiator to schedule
+      if !inEmailList initiator, emails
+        emails.push initiator
 
       # Build out calendar data
       buildMeetingCalendar emails, (users, availability) ->
@@ -43,12 +49,19 @@ meetingController =
     email = req.query.email
     cursor = Meeting.methods.findById(meeting_id)
     cursor.on 'data', (doc) ->
+      initiator = doc.meeting_initiator
       emails = doc.emails
       if emails
         if inEmailList(email, emails)
           index = emails.indexOf email
           emails.splice(index, 1)
+
       Meeting.methods.update(meeting_id, {emails: emails})
+
+      # Append meeting initiator to schedule
+      if !inEmailList initiator, emails
+        emails.push initiator
+
       buildMeetingCalendar emails, (users, availability) ->
         response = {}
         response.tandem_users = ({name: user.name, email: user.email} for user in users)
@@ -56,8 +69,17 @@ meetingController =
         res.status(200).send response
 
   addMeeting: (req, res) ->
-    Meeting.methods.create req.body, (result) ->
-      res.status(200).send result
+    req.body.meeting_initiator = req.user.email
+    Meeting.methods.create req.body, (meeting) ->
+      emails = [req.user.email]
+      buildMeetingCalendar emails, (users, availability) ->
+        response = {}
+        response.meeting_id = meeting._id
+        response.tandem_users = ({name: user.name, email: user.email} for user in users)
+        response.schedule = availability
+        res.status(200).send response
+
+
 
   sendEmailInvites: (req, res) ->
     meeting_id = req.body.meeting_id
