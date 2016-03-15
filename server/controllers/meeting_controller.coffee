@@ -83,6 +83,10 @@ meetingController =
 
   sendEmailInvites: (req, res) ->
     meeting_id = req.body.meeting_id
+    meetingSummary = req.body.meeting_summary
+    meetingLocation = req.body.meeting_location
+    timeSelections = req.body.meeting_time_selection
+
     cursor = Meeting.methods.findById meeting_id
     user_id = req.user.id
     User.methods.findByGoogleId user_id, (err, user) ->
@@ -93,12 +97,16 @@ meetingController =
             toPush = {email}
             emailsArr.push toPush
 
+          #randomly choose time slot
+          slot = timeSelections[Math.floor(Math.random() * (timeSelections.length-1))]
+
           meetingInfo =
-            meetingSummary: req.body.meetingSummary
-            meetingLocation: req.body.meetingLocation
+            meetingSummary: meetingSummary
+            meetingLocation: meetingLocation
             meetingAttendees: emailsArr
-          googleAuth.sendCalendarInvite(oauth2Client, meetingInfo)
-          res.status(200).send("success")
+            timeSlot: slot
+          googleAuth.sendCalendarInvite oauth2Client, meetingInfo, (event) ->
+            res.status(200).send(event)
 
 
 # Private Helpers
