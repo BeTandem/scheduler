@@ -177,7 +177,7 @@ createWeekCalendarChunks = () ->
   #iterate through days to create time chunks
   week.by 'days', (day)->
     dayObj =
-      day_code: day.format('dd')
+      day_code: day.format('ddd, MMM Do') #Example: 'Tue, Mar 15th'
       morning: null
       afternoon: null
       evening: null
