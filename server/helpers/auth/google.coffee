@@ -71,6 +71,17 @@ googleAuth =
       if callback
         callback(event)
 
+  getUserTimezone: (oauth2Client, callback) ->
+    calendar.settings.get {
+      auth: oauth2Client
+      setting: "timezone"
+    }, (err, settings) ->
+      if err
+        console.log "GoogleApis settings error:", err
+      if callback
+        callback settings
+
+
 # Private Methods
 getStoredAuthClient = (user, callback) ->
   clientId = config.googleAuthConfig.clientId

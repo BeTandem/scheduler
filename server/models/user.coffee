@@ -19,8 +19,8 @@ User.methods =
     }, (err, user) ->
       if err
         console.log "Find user by id error:", err
-      if callback
-        callback err, user
+      if callback && user
+        callback err, user[0]
 
   addUser: (user, callback)->
     db.collection('user').insert user, (err, result) ->
