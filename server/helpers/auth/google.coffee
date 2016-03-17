@@ -37,15 +37,16 @@ googleAuth =
     busyFreePromiseList = []
     for user in userList
       getStoredAuthClient user, (oauth2Client) ->
-        busyFreePromise = getCalendarFreeBusy(oauth2Client)
-        busyFreePromiseList.push busyFreePromise
+        if oauth2Client
+          busyFreePromise = getCalendarFreeBusy(oauth2Client)
+          busyFreePromiseList.push busyFreePromise
 
     Promise.all(busyFreePromiseList).then (eventsList) ->
       callback(eventsList)
 
   getAuthClient: (user, callback) ->
     return getStoredAuthClient user, (oauth2Client) ->
-      if callback
+      if oauth2Client & callback
         callback oauth2Client
 
   sendCalendarInvite: (oauth2Client, meetingInfo, callback) ->
@@ -87,6 +88,10 @@ getStoredAuthClient = (user, callback) ->
   clientId = config.googleAuthConfig.clientId
   redirectUri = config.googleAuthConfig.redirectUri
   oauth2Client = buildAuthClient clientId, redirectUri
+  if !user.auth
+    console.log "Googleapis Auth token not stored for:", user.email
+    return callback(null)
+
   oauth2Client.setCredentials user.auth
 
   # Need to refresh access token
