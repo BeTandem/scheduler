@@ -46,7 +46,7 @@ googleAuth =
 
   getAuthClient: (user, callback) ->
     return getStoredAuthClient user, (oauth2Client) ->
-      if oauth2Client & callback
+      if oauth2Client && callback
         callback oauth2Client
 
   sendCalendarInvite: (oauth2Client, meetingInfo, callback) ->

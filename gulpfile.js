@@ -58,9 +58,7 @@ gulp.task('coffee', function() {
   // Development Build
   else{
     gulp.src('./server/**/*.coffee')
-      .pipe(sourcemaps.init())
       .pipe(coffee({bare: true}).on('error', gutil.log))
-      .pipe(sourcemaps.write())
       .pipe(gulp.dest('./dist'));
   }
 
