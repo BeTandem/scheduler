@@ -12,6 +12,7 @@ morningStartHour=8
 afternoonStartHour=12
 eveningStartHour=17
 dayEndHour=20
+meetingLengthDefault=60
 
 
 meetingController =
@@ -27,6 +28,7 @@ meetingController =
       initiator = doc.meeting_initiator
       emails = doc.emails
       timezone = doc.timezone
+      lenInMin = if doc.length_in_min then doc.length_in_min else meetingLengthDefault
       if emails
         if !inEmailList(email, emails)
           emails.push email
@@ -40,7 +42,7 @@ meetingController =
         emails.push initiator
 
       # Build out calendar data
-      buildMeetingCalendar emails, timezone, (users, availability) ->
+      buildMeetingCalendar emails, timezone, lenInMin, (users, availability) ->
         response = {}
         response.tandem_users = ({name: user.name, email: user.email} for user in users)
         response.schedule = availability
@@ -55,6 +57,7 @@ meetingController =
       initiator = doc.meeting_initiator
       emails = doc.emails
       timezone = doc.timezone
+      lenInMin =  if doc.length_in_min then doc.length_in_min else meetingLengthDefault
       if emails
         if inEmailList(email, emails)
           index = emails.indexOf email
@@ -66,7 +69,7 @@ meetingController =
       if !inEmailList initiator, emails
         emails.push initiator
 
-      buildMeetingCalendar emails, timezone, (users, availability) ->
+      buildMeetingCalendar emails, timezone, lenInMin, (users, availability) ->
         response = {}
         response.tandem_users = ({name: user.name, email: user.email} for user in users)
         response.schedule = availability
@@ -76,6 +79,8 @@ meetingController =
     initiator = req.user
     req.body.meeting_initiator = initiator.email
 
+    lenInMin = if req.body.length_in_min then req.body.length_in_min else meetingLengthDefault
+
     User.methods.findByGoogleId initiator.id, (err, initiatorUser) ->
       googleAuth.getAuthClient initiatorUser, (oauth2Client) ->
         googleAuth.getUserTimezone oauth2Client, (timezoneSetting) ->
@@ -83,7 +88,9 @@ meetingController =
           req.body.timezone = timezone
           Meeting.methods.create req.body, (meeting) ->
             emails = [req.user.email]
-            buildMeetingCalendar emails, timezone, (users, availability) ->
+            if req.body.attendees
+              emails = emails.concat (attendee.email for attendee in req.body.attendees)
+            buildMeetingCalendar emails, timezone, lenInMin, (users, availability) ->
               response = {}
               response.meeting_id = meeting._id
               response.tandem_users = ({name: user.name, email: user.email} for user in users)
@@ -121,7 +128,7 @@ meetingController =
 
 
 # Private Helpers
-buildMeetingCalendar = (emails, timezone, callback) ->
+buildMeetingCalendar = (emails, timezone, lengthInMin, callback) ->
   relCals = []
   freeBusy = []
   UsersFromEmails emails, (err, users) ->
@@ -133,15 +140,13 @@ buildMeetingCalendar = (emails, timezone, callback) ->
         freeBusy.push times.busy
       freeBusy = _.flatten freeBusy
 
-      groupAvailability = getAvailabilityRanges(freeBusy, timezone)
+      groupAvailability = getAvailabilityRanges(freeBusy, timezone, lengthInMin)
       if callback
         callback(users, groupAvailability)
 
-getAvailabilityRanges = (timesArray, timezone) ->
-  #TODO: move length into passed var
-  lengthOfMeeting = 60 #in minutes
-  duration = moment.duration(lengthOfMeeting, 'minutes')
-
+getAvailabilityRanges = (timesArray, timezone, lengthInMin) ->
+  lengthOfMeeting = lengthInMin
+  meetDuration = moment.duration(minutes: lengthOfMeeting)
   # Build Busy Ranges
   busyRanges = []
   for busy in timesArray
@@ -169,7 +174,7 @@ getAvailabilityRanges = (timesArray, timezone) ->
       dayObj[key] = []
       if timeRange
         timeRange.by fifteenMinRange, (time) ->
-          newRange = moment.range(time, moment(time).add(duration, 'minutes'))
+          newRange = moment.range(time, moment(time).add(meetDuration))
           if isTimeRangeAvailable(newRange, busyRanges)
             dayObj[key].push(newRange)
 
