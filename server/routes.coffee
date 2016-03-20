@@ -6,13 +6,17 @@ passport              = require './middlewares/passport'
 morgan                = require 'morgan'
 googleapis            = require 'googleapis'
 config                = require 'config'
-User                  = require './models/user'
-db                    = require './database_adapter'
+Validator             = require './helpers/validator'
+ErrorHandler          = require './helpers/error_handler'
+
+validator = new Validator()
+errorHandler = new ErrorHandler()
 
 module.exports = (app, router) ->
   app.use passport.initialize()
   app.use morgan('combined')
   app.use "/api/v1", router
+  app.use errorHandler.handler
 
   bearer = passport.authenticate 'bearer', { session: false }
 
@@ -21,24 +25,41 @@ module.exports = (app, router) ->
 
   # Login/logout Routes
   router.route "/login"
-    .post (req, res) ->
-      authController.googleLogin(req, res)
-
-  router.route "/calendar/:id"
-    .get (req,res) ->
-      calendarController.getCalendarEvents(req,res)
-
-  router.route   "/sendMeetingInvite"
-    .post bearer, (req,res) ->
-      meetingController.sendEmailInvites(req,res)
+    .post (req, res, next) ->
+      err = validator.validateType("login").getValidationErrors(req)
+      if err
+        next(err)
+      else
+        authController.googleLogin(req, res)
 
   # Meeting Routes
   router.route "/attendees"
-    .post bearer, (req, res) ->
+    .post bearer, (req, res, next) ->
+      err = validator.validateType("add_attendee").getValidationErrors(req)
+      if err
+        next(err)
       meetingController.addEmail(req, res)
-    .delete bearer, (req, res) ->
+    .delete bearer, (req, res, next) ->
+      err = validator.validateType("delete_attendee").getValidationErrors(req)
+      if err
+        next(err)
       meetingController.removeEmail(req, res)
 
   router.route "/meetings/"
-    .post bearer, (req, res) ->
+    .post bearer, (req, res, next) ->
+      err = validator.validateType("meeting").getValidationErrors(req)
+      if err
+        next(err)
       meetingController.addMeeting(req, res)
+
+  router.route   "/sendMeetingInvite"
+    .post bearer, (req, res, next) ->
+      err = validator.validateType("schedule").getValidationErrors(req)
+      if err
+        next(err)
+      meetingController.sendEmailInvites(req,res)
+
+  # Testing Routes
+  router.route "/calendar/:id"
+    .get (req,res) ->
+      calendarController.getCalendarEvents(req,res)
