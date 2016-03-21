@@ -1,8 +1,7 @@
 class ErrorHandler
 
-  handler: (err, res, req, next) ->
+  handler: (err, req, res, next) ->
     if err
-      console.log err
       console.error err.stack
       res.status(400).send({error: err.message})
     else
