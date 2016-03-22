@@ -14,7 +14,8 @@ errorHandler = new ErrorHandler()
 
 module.exports = (app, router) ->
   app.use passport.initialize()
-  app.use morgan('combined')
+  if process.env.NODE_ENV != 'test'
+    app.use morgan('combined')
   app.use "/api/v1", router
   app.use errorHandler.handler
 

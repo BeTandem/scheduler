@@ -25,9 +25,6 @@ var config = {
   prod: !!gutil.env.production,
   init: function(){
     this.env = this.prod ? 'production' : 'development';
-    if(!!gutil.env.test){
-      this.env = 'test'
-    }
     return this;
   }
 }.init();
@@ -80,6 +77,7 @@ gulp.task('watch', function(){
   */
 
 gulp.task('test', function(){
+  process.env.NODE_ENV = 'test';
   require('coffee-script/register'); // Required for mocha
   var reporter = !!process.env.CIRCLECI ? 'mocha-junit-reporter' : 'spec';
   gulp.src('tests/**/*.coffee', {read:false})
@@ -89,7 +87,10 @@ gulp.task('test', function(){
       mochaFile: process.env.CIRCLE_TEST_REPORTS + '/junit-report.xml'
     },
     compilers: 'coffee'
-  }));
+  }))
+  .once('end', function () {
+    process.exit();
+  });
 });
 
 
