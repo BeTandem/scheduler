@@ -10,8 +10,11 @@ GET = 'get'
 class GoogleApisMock
   #Constants
   USER_INFO: /oauth2\/v2\/userinfo.*/
+  TIMEZONE: /users\/me\/settings\/timezone.*/
   CAL_EVENTS: /calendar\/v3\/calendars\/primary\/events.*/
   AUTH: /o\/oauth2\/token.*/
+  CAL_LIST: /calendar\/v3\/users\/me\/calendarList.*/
+  FREEBUSY: /calendar\/v3\/freeBusy.*/
 
   #Methods
   constructor: ()->
