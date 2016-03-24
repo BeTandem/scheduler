@@ -4,7 +4,7 @@ errorType = "Login Validation Error: "
 
 class LoginValidator
   constructor: (type) ->
-    console.log "Created new validator of type", type
+#    console.log "Created new validator of type", type
 
   getValidationErrors: (req) ->
     errors = []

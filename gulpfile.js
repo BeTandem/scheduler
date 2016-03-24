@@ -78,6 +78,7 @@ gulp.task('watch', function(){
 
 gulp.task('test', function(){
   process.env.NODE_ENV = 'test';
+  process.env.PORT = 3002;
   require('coffee-script/register'); // Required for mocha
   var reporter = !!process.env.CIRCLECI ? 'mocha-junit-reporter' : 'spec';
   gulp.src('tests/**/*.coffee', {read:false})

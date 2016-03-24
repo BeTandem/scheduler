@@ -1,11 +1,17 @@
 nock      = require 'nock'
 
 googleApisUrl = 'https://www.googleapis.com/'
+googleAccountsUrl = 'https://accounts.google.com/'
+
+POST = 'post'
+GET = 'get'
+
 
 class GoogleApisMock
   #Constants
   USER_INFO: /oauth2\/v2\/userinfo.*/
   CAL_EVENTS: /calendar\/v3\/calendars\/primary\/events.*/
+  AUTH: /o\/oauth2\/token.*/
 
   #Methods
   constructor: ()->
@@ -15,20 +21,40 @@ class GoogleApisMock
 
   get: (type) ->
     @type = type
+    @url = if @type == @AUTH then googleAccountsUrl else googleApisUrl
+    @httpProtocol = GET
     return @
 
-  andReply: (response) ->
-    loadNock(@type, response)
+  post: (type) ->
+    @type = type
+    @url = if @type == @AUTH then googleAccountsUrl else googleApisUrl
+    @httpProtocol = POST
+    return @
 
-  andReplyFromFile: (filename) ->
+  andRespond: (response) ->
+    switch @httpProtocol
+      when POST then loadPostNock(@url, @type, response)
+      when GET then loadGetNock(@url, @type, response)
+
+
+  andRespondFromFile: (filename) ->
     response = require './json/'+filename
-    loadNock(@type, response)
+    switch @httpProtocol
+      when POST then loadPostNock(@url, @type, response)
+      when GET then loadGetNock(@url, @type, response)
 
 #Private Methods
-loadNock = (type, response) ->
+loadGetNock = (url, type, response) ->
   before (done) ->
-    nock(googleApisUrl)
+    nock(url)
     .get(type)
+    .reply(200, response)
+    done()
+
+loadPostNock = (url, type, response) ->
+  before (done) ->
+    nock(url)
+    .post(type)
     .reply(200, response)
     done()
 

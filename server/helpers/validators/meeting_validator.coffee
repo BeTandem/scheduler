@@ -4,7 +4,7 @@ errorType = "Meeting Validation Error: "
 
 class MeetingValidator
   constructor: (type) ->
-    console.log "Created new validator of type", type
+#    console.log "Created new validator of type", type
 
   getValidationErrors: (req) ->
     errors = []
