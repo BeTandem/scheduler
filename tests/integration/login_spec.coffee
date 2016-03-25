@@ -21,7 +21,7 @@ describe '/login', ->
   returningUserAuth = require '../utils/json/auth/returning_user_auth.json'
   describe 'Post to Login with proper creds', ->
     googleMock.post(googleMock.AUTH).andRespondFromFile('auth/google_authenticated_response.json')
-    googleMock.get(googleMock.USER_INFO).andRespondFromFile('users/google_authenticated_user.json')
+    googleMock.get(googleMock.USER_INFO).andRespondFromFile('google_responses/oauth2.userinfo.with.auth.json')
     it 'should create a new user', (done) ->
       request(app)
       .post api + '/login'
@@ -56,7 +56,7 @@ describe '/login', ->
   # Need to implement this functionality
 #  describe 'Post to Login without refresh token', ->
 #    googleMock.post(googleMock.AUTH).andRespondFromFile('auth/google_authenticated_response.json')
-#    googleMock.get(googleMock.USER_INFO).andRespondFromFile('users/google_user_with_no_auth.json')
+#    googleMock.get(googleMock.USER_INFO).andRespondFromFile('google_responses/oauth2.userinfo.without.auth.json')
 #    it 'should return an error', (done) ->
 #      request(app)
 #      .post api + '/login'
