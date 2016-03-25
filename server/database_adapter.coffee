@@ -3,6 +3,7 @@
 # Use mongojs for database connections without callbacks
 mongojs = require('mongojs')
 config = require 'config'
+logger = require './helpers/logger'
 
 # Load Database Configurations
 dbConfig = config.get 'dbConfig'
@@ -16,7 +17,7 @@ Database = () ->
 
   # Establish a new connection
   init = ->
-    console.log "New Mongodb connection to "+dbName+"@"+dbHost
+    logger.server "New Mongodb connection to "+dbName+"@"+dbHost
     _db = mongojs dbHost+":"+dbPort+"/"+dbName
 
     # Return object for later expansion of methods

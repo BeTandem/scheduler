@@ -27,7 +27,6 @@ describe '/calendar/:calendar_id', ->
         .expect(200)
         .end (err, res) ->
           if err
-            console.error err
             done(err)
           else
             expect(res.body.test).to.equal "test"
@@ -43,8 +42,6 @@ describe '/calendar/:calendar_id', ->
 #      .expect(401)
 #      .end (err, res) ->
 #        if err
-#          console.error err
 #          done(err)
 #        else
-#          console.log res.body
 #          done()

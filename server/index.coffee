@@ -7,6 +7,7 @@ bodyParser      = require "body-parser"
 routes          = require "./routes"
 http            = require "http"
 cors            = require "cors"
+logger          = require './helpers/logger'
 
 # Make app using Express framework
 app = express()
@@ -23,7 +24,7 @@ routes app, router
 # Start server
 server = http.createServer(app)
 server.listen app.get("port"), ->
-  console.log "Listening on port " + app.get("port") + \
+  logger.server "Listening on port " + app.get("port") + \
   " in " + app.get("env") + " mode"
 
 # Export App
