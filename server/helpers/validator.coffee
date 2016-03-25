@@ -6,7 +6,6 @@ ScheduleValidator = require './validators/schedule_validator'
 
 class Validator
   validateType: (type) ->
-    console.log "Created new validator"
     switch type
       when "login" then new LoginValidator(type)
       when "add_attendee" then new AddAttendeeValidator(type)

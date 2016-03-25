@@ -7,7 +7,6 @@ bodyParser      = require "body-parser"
 routes          = require "./routes"
 http            = require "http"
 cors            = require "cors"
-databaseAdapter = require('./database_adapter')
 
 # Make app using Express framework
 app = express()
