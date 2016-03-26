@@ -1,8 +1,10 @@
+logger = require './logger'
+
 class ErrorHandler
 
   handler: (err, req, res, next) ->
     if err
-#      console.error err.message
+      logger.error err.message, err.stack
       res.status(400).send({error: err.message})
     else
       next()

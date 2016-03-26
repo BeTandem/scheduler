@@ -1,6 +1,7 @@
 googleapis  = require 'googleapis'
 config      = require 'config'
 User        = require '../../models/user'
+logger      = require '../logger'
 
 oauth2 = googleapis.oauth2('v2')
 calendar = googleapis.calendar('v3')
@@ -19,7 +20,7 @@ googleAuth =
       auth: oauth2Client
     }, (err, googleUser) ->
       if err
-        console.log "Googleapis User Info Error:", err
+        logger.error "Googleapis User Info Error:", err
       if callback
         callback err, googleUser
 
@@ -29,7 +30,7 @@ googleAuth =
       auth: oauth2Client
     }, (err, events)->
       if err
-        console.log "Googleapis Calendar Events Error:", err
+        logger.error "Googleapis Calendar Events Error:", err
       if callback
         callback err, events
 
@@ -66,9 +67,9 @@ googleAuth =
       sendNotifications: true
     }, (err, event) ->
       if err
-        console.log 'There was an error contacting the Calendar service: ' + err
+        logger.error 'There was an error contacting the Calendar service: ', err
         return err
-      console.log 'Event created: %s', event.htmlLink
+      logger.info 'Event created: ' + event.htmlLink
       if callback
         callback(event)
 
@@ -78,7 +79,7 @@ googleAuth =
       setting: "timezone"
     }, (err, settings) ->
       if err
-        console.log "GoogleApis settings error:", err
+        logger.error "GoogleApis settings error:", err
       if callback
         callback settings
 
@@ -89,14 +90,14 @@ getStoredAuthClient = (user, callback) ->
   redirectUri = config.googleAuthConfig.redirectUri
   oauth2Client = buildAuthClient clientId, redirectUri
   if !user.auth
-    console.log "Googleapis Auth token not stored for:", user.email
+    logger.error "Googleapis Auth token not stored for:" + user.email
     return callback(null)
 
   oauth2Client.setCredentials user.auth
 
   # Need to refresh access token
   if user.auth.expiry_date < (new Date).getTime()
-    console.log("Refreshing Access Token")
+    logger.info("Refreshing Access Token")
     tokenPromise = refreshAccessToken(oauth2Client)
     tokenPromise.then (tokens)->
       User.methods.updateAuth user.id, tokens
@@ -111,7 +112,7 @@ getStoredAuthClient = (user, callback) ->
 getAuthToken = (authCode, oauth2Client, callback)->
   oauth2Client.getToken authCode, (err, tokens)->
     if err
-      console.log "Googleapis Token Error:", err
+      logger.error "Googleapis Token Error:", err
     if callback
       return callback err, tokens
 
@@ -119,7 +120,7 @@ refreshAccessToken = (oauth2Client) ->
   tokensPromise = new Promise (resolve, reject) ->
     oauth2Client.refreshAccessToken (err, tokens)->
       if err
-        console.log "Refresh Access Token Error:", err
+        logger.error "Refresh Access Token Error:", err
         reject(err)
       else
         resolve(tokens)
@@ -137,7 +138,7 @@ getCalendarIds = (oauth2Client, callback) ->
     minAccessRole: 'owner'
   }, (err, calendarIds) ->
     if err
-      console.log "Get Calendar Ids Error:", err
+      logger.error "Get Calendar Ids Error:", err
     if callback
       callback(err, calendarIds)
 
@@ -148,10 +149,9 @@ getEventsCalendar = (calendarId, oauth2Client)->
       auth: oauth2Client
     }, (err, events) ->
       if err
-        console.log "Googleapis Get Users Calendars Error", err
+        logger.error "Googleapis Get Users Calendars Error", err
         reject(err)
       else
-        console.log "resolving"
         resolve(events)
 
 getCalendarFreeBusy = (oauth2Client) ->
@@ -170,7 +170,7 @@ getCalendarFreeBusy = (oauth2Client) ->
         auth: oauth2Client
       }, (err, busyFree)->
         if err
-          console.log "Googleapis Calendar Events Error:", err
+          logger.error "Googleapis Calendar Events Error:", err
           reject err
         else
           resolve busyFree
