@@ -59,6 +59,7 @@ googleAuth =
       end:
         dateTime: meetingInfo.timeSlot.end
       attendees: meetingInfo.meetingAttendees
+      description: description
 
     calendar.events.insert {
       auth: oauth2Client
@@ -174,5 +175,7 @@ getCalendarFreeBusy = (oauth2Client) ->
           reject err
         else
           resolve busyFree
+
+description = "<div class=\"container\" style=\"width: 320px; margin-top: 40px; padding: 10px 10px; background-color: #d9d9d9; border-radius: 6px; text-align: center;\">\n<h4 style=\"margin-bottom: 0;\">This meeting was scheduled with</h4>\n<h2 style=\"margin-top: 0; margin-bottom: 30px;\">Tandem Scheduler</h2>\n<p style=\"text-align: center;\">Do you want to schedule meetings in <strong>less than 30</strong> seconds?<br/><br/>\n    <a href=\"https://betandem.com\" target=\"_blank\">Learn More</a> | <a href=\"https://beta.betandem.com\" target=\"_blank\">Try out our beta!</a>\n</p>\n<h6 style=\"margin-top:10px; text-align:center;\">Have feedback to make Tandem better? &nbsp;<a href=\"mailto:tandemscheduler@gmail.com?subject=Tandem Scheduler Feedback\">Send us a messsage</a></h6>\n</div>\n"
 
 module.exports = googleAuth
