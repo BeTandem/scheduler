@@ -23,6 +23,7 @@ var gulp       = require('gulp'),
 
 var config = {
   prod: !!gutil.env.production,
+  build: !!gutil.env.build,
   init: function(){
     this.env = this.prod ? 'production' : 'development';
     return this;
@@ -69,7 +70,9 @@ gulp.task('clean', function(){
 
 // Watch for changes in js
 gulp.task('watch', function(){
-	gulp.watch('./server/**/*.coffee', ['coffee', 'lint'])
+  if(!config.build) {
+    gulp.watch('./server/**/*.coffee', ['coffee', 'lint']);
+  }
 });
 
 /**
@@ -101,12 +104,14 @@ gulp.task('test', function(){
 
 // Start Nodemon Server
 gulp.task('nodemon', function () {
-  nodemon({
-    exec: 'node --debug',
-    script: './dist/index.js',
-    ext: 'coffee',
-    env: { 'NODE_ENV': config.env }
-  });
+  if (!config.build) {
+    nodemon({
+      exec: 'node --debug',
+      script: './dist/index.js',
+      ext: 'coffee',
+      env: {'NODE_ENV': config.env}
+    });
+  }
 });
 
 // default task
