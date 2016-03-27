@@ -10,7 +10,6 @@
 .DS_Store
 .project
 .idea
-!.keep
 
 # Node Ignores
 /node_modules
@@ -20,4 +19,5 @@
 # Configurations
 /config/*
 !/config/default.json.sample
-/logs
+/logs/*
+!.keep
