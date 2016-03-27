@@ -16,6 +16,7 @@ auth = new Auth()
 user = require '../utils/json/users/google_authenticated_user.json'
 token = auth.createToken(user)
 
+logger = require '../../server/helpers/logger'
 
 #######################
 #MEETING ROUTE
@@ -40,3 +41,21 @@ describe '/meeting', ->
           expect(body).to.have.property("tandem_users");
           expect(body.schedule).to.be.lengthOf(5)
           done()
+
+#  describe 'creating a new meeting with unavailable chunks', ->
+#    googleMock.get(googleMock.TIMEZONE).andRespondFromFile('google_responses/calendar.settings.get.timezone.json')
+#    googleMock.get(googleMock.CAL_LIST).andRespondFromFile('google_responses/calendar.calendarlist.list.json')
+#    googleMock.post(googleMock.FREEBUSY).andRespondFromFile('google_responses/calendar.freebusy.time.test.json')
+#    it 'should respond with an object that is unavailable for those chunks', (done) ->
+#      request(app)
+#      .post api + '/meetings'
+#      .set('Authorization', "Bearer " + token)
+#      .send {}
+#      .expect 200
+#      .end (err, response) ->
+#        if err
+#          done(err)
+#        else
+#          body = response.body
+#          logger.debug "body", body
+#          done()

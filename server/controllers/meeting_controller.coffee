@@ -1,19 +1,7 @@
-Meeting     = require "../models/meeting"
-User        = require "../models/user"
-googleAuth  = require "../helpers/auth/google"
-config      = require 'config'
-_           = require 'underscore'
-moment      = require 'moment'
-require 'moment-range'
-require 'moment-timezone'
-
-#constants
-morningStartHour=8
-afternoonStartHour=12
-eveningStartHour=17
-dayEndHour=20
-meetingLengthDefault=60
-
+Meeting = require "../models/meeting"
+User = require "../models/user"
+googleAuth = require "../helpers/auth/google"
+CalendarParser = require "../helpers/calendar_parser"
 
 meetingController =
 
@@ -28,7 +16,7 @@ meetingController =
       initiator = doc.meeting_initiator
       emails = doc.emails
       timezone = doc.timezone
-      lenInMin = if doc.length_in_min then doc.length_in_min else meetingLengthDefault
+      lenInMin = doc.length_in_min
       if emails
         if !inEmailList(email, emails)
           emails.push email
@@ -42,11 +30,14 @@ meetingController =
         emails.push initiator
 
       # Build out calendar data
-      buildMeetingCalendar emails, timezone, lenInMin, (users, availability) ->
-        response = {}
-        response.tandem_users = ({name: user.name, email: user.email} for user in users)
-        response.schedule = availability
-        res.status(200).send response
+      UsersFromEmails emails, (err, users) ->
+        googleAuth.getCalendarsFromUsers users, (cals) ->
+          calendarParser = new CalendarParser(timezone, lenInMin)
+          availability = calendarParser.buildMeetingCalendar(cals)
+          response = {}
+          response.tandem_users = ({name: user.name, email: user.email} for user in users)
+          response.schedule = availability
+          res.status(200).send response
 
   removeEmail: (req, res) ->
     response = {}
@@ -57,7 +48,7 @@ meetingController =
       initiator = doc.meeting_initiator
       emails = doc.emails
       timezone = doc.timezone
-      lenInMin =  if doc.length_in_min then doc.length_in_min else meetingLengthDefault
+      lenInMin = doc.length_in_min
       if emails
         if inEmailList(email, emails)
           index = emails.indexOf email
@@ -69,17 +60,20 @@ meetingController =
       if !inEmailList initiator, emails
         emails.push initiator
 
-      buildMeetingCalendar emails, timezone, lenInMin, (users, availability) ->
-        response = {}
-        response.tandem_users = ({name: user.name, email: user.email} for user in users)
-        response.schedule = availability
-        res.status(200).send response
+        UsersFromEmails emails, (err, users) ->
+          googleAuth.getCalendarsFromUsers users, (cals) ->
+            calendarParser = new CalendarParser(timezone, lenInMin)
+            availability = calendarParser.buildMeetingCalendar(cals)
+            response = {}
+            response.tandem_users = ({name: user.name, email: user.email} for user in users)
+            response.schedule = availability
+            res.status(200).send response
 
   addMeeting: (req, res) ->
     initiator = req.user
     req.body.meeting_initiator = initiator.email
 
-    lenInMin = if req.body.length_in_min then req.body.length_in_min else meetingLengthDefault
+    lenInMin = req.body.length_in_min
 
     User.methods.findByGoogleId initiator.id, (err, initiatorUser) ->
       googleAuth.getAuthClient initiatorUser, (oauth2Client) ->
@@ -90,12 +84,15 @@ meetingController =
             emails = [req.user.email]
             if req.body.attendees
               emails = emails.concat (attendee.email for attendee in req.body.attendees)
-            buildMeetingCalendar emails, timezone, lenInMin, (users, availability) ->
-              response = {}
-              response.meeting_id = meeting._id
-              response.tandem_users = ({name: user.name, email: user.email} for user in users)
-              response.schedule = availability
-              res.status(200).send response
+            UsersFromEmails emails, (err, users) ->
+              googleAuth.getCalendarsFromUsers users, (cals) ->
+                calendarParser = new CalendarParser(timezone, lenInMin)
+                availability = calendarParser.buildMeetingCalendar(cals)
+                response = {}
+                response.meeting_id = meeting._id
+                response.tandem_users = ({name: user.name, email: user.email} for user in users)
+                response.schedule = availability
+                res.status(200).send response
 
 
 
@@ -128,111 +125,6 @@ meetingController =
 
 
 # Private Helpers
-buildMeetingCalendar = (emails, timezone, lengthInMin, callback) ->
-  relCals = []
-  freeBusy = []
-  UsersFromEmails emails, (err, users) ->
-    googleAuth.getCalendarsFromUsers users, (cals) ->
-      for calObject in cals
-        for name, calendar of calObject.calendars
-          relCals.push calendar
-      for times in relCals
-        freeBusy.push times.busy
-      freeBusy = _.flatten freeBusy
-
-      groupAvailability = getAvailabilityRanges(freeBusy, timezone, lengthInMin)
-      if callback
-        callback(users, groupAvailability)
-
-getAvailabilityRanges = (timesArray, timezone, lengthInMin) ->
-  lengthOfMeeting = lengthInMin
-  meetDuration = moment.duration(minutes: lengthOfMeeting)
-  # Build Busy Ranges
-  busyRanges = []
-  for busy in timesArray
-    start = moment(busy.start)
-    end = moment(busy.end)
-    range = moment.range(start, end)
-    busyRanges.push(range)
-
-  #Build Out fifteen min range for iteration
-  now = moment()
-  fifteenMinutes = moment.duration(15, 'minutes')
-  newTime =  moment(now).add(fifteenMinutes)
-  fifteenMinRange = moment.range(now, newTime)
-
-  #retrieve relevant calendar chunks
-  calendarChunks = createWeekCalendarChunks(timezone)
-
-  availableRanges = []
-  for day in calendarChunks
-    dayObj =
-      day_code: day.day_code
-    delete day['day_code']
-
-    for key, timeRange of day
-      dayObj[key] = []
-      if timeRange
-        timeRange.by fifteenMinRange, (time) ->
-          newRange = moment.range(time, moment(time).add(meetDuration))
-          if isTimeRangeAvailable(newRange, busyRanges)
-            dayObj[key].push(newRange)
-
-    availableRanges.push(dayObj)
-
-  return availableRanges
-
-createWeekCalendarChunks = (timezone) ->
-  calendarChunks = []
-
-
-  # Get Range
-  nowTime = moment()
-  weekFromNow = moment(nowTime).add(moment.duration(4, 'days'))
-  week = moment.range(nowTime, weekFromNow)
-
-  #iterate through days to create time chunks
-  week.by 'days', (day)->
-    dayObj =
-      day_code: day.format('ddd, MMM Do') #Example: 'Tue, Mar 15th'
-      morning: null
-      afternoon: null
-      evening: null
-
-    utcTimes = getUTCTimesFromTimezone(day, timezone)
-
-    #create morning Range
-
-    mornStart = utcTimes.mornStart
-    mornEnd = utcTimes.aftStart
-    morning = moment.range(mornStart, mornEnd)
-    if nowTime.unix() < mornStart.unix()
-      dayObj.morning = morning
-
-    #create afternoon Range
-    aftStart = utcTimes.aftStart
-    aftEnd = utcTimes.evStart
-    afternoon = moment.range(aftStart, aftEnd)
-    if nowTime.unix() < aftStart.unix()
-      dayObj.afternoon = afternoon
-
-    #create evening Range
-    evStart = utcTimes.evStart
-    evEnd =utcTimes.evEnd
-    evening = moment.range(evStart, evEnd)
-    if nowTime.unix() < evStart.unix()
-      dayObj.evening = evening
-
-    calendarChunks.push dayObj
-
-  return calendarChunks
-
-isTimeRangeAvailable = (range, busyRanges) ->
-  for busy in busyRanges
-    if range.overlaps(busy)
-      return false
-  return true
-
 UsersFromEmails = (emails, callback) ->
   #collect google Ids from user db from emails
   User.methods.findByEmailList emails, callback
@@ -242,23 +134,5 @@ inEmailList = (email, email_list) ->
     if email == e
       return true
   return false
-
-getUTCTimesFromTimezone = (day, timezone) ->
-  time =
-    year: day.year()
-    month: day.month()
-    day: day.date()
-
-  utcTimes = {}
-  time.hour = morningStartHour
-  utcTimes.mornStart = moment.tz(time, timezone)
-  time.hour = afternoonStartHour
-  utcTimes.aftStart = moment.tz(time, timezone)
-  time.hour = eveningStartHour
-  utcTimes.evStart = moment.tz(time, timezone)
-  time.hour = dayEndHour
-  utcTimes.evEnd = moment.tz(time, timezone)
-
-  return utcTimes
 
 module.exports = meetingController
