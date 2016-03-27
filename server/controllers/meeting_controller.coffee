@@ -2,6 +2,7 @@ Meeting = require "../models/meeting"
 User = require "../models/user"
 googleAuth = require "../helpers/auth/google"
 CalendarParser = require "../helpers/calendar_parser"
+logger = '../helpers/logger'
 
 meetingController =
 
@@ -35,6 +36,7 @@ meetingController =
           calendarParser = new CalendarParser(timezone, lenInMin)
           availability = calendarParser.buildMeetingCalendar(cals)
           response = {}
+          response.calendar_hours = getCalendarTimes(calendarParser)
           response.tandem_users = ({name: user.name, email: user.email} for user in users)
           response.schedule = availability
           res.status(200).send response
@@ -65,6 +67,7 @@ meetingController =
             calendarParser = new CalendarParser(timezone, lenInMin)
             availability = calendarParser.buildMeetingCalendar(cals)
             response = {}
+            response.calendar_hours = getCalendarTimes(calendarParser)
             response.tandem_users = ({name: user.name, email: user.email} for user in users)
             response.schedule = availability
             res.status(200).send response
@@ -89,6 +92,8 @@ meetingController =
                 calendarParser = new CalendarParser(timezone, lenInMin)
                 availability = calendarParser.buildMeetingCalendar(cals)
                 response = {}
+                response.calendar_hours = getCalendarTimes(calendarParser)
+#                logger.debug "cal hours", response.calendar_hours
                 response.meeting_id = meeting._id
                 response.tandem_users = ({name: user.name, email: user.email} for user in users)
                 response.schedule = availability
@@ -134,5 +139,15 @@ inEmailList = (email, email_list) ->
     if email == e
       return true
   return false
+
+getCalendarTimes = (calendarParser) ->
+  return {
+    morning_start: calendarParser.morningStartHour
+    morning_end: calendarParser.afternoonStartHour
+    afternoon_start: calendarParser.afternoonStartHour
+    afternoon_end: calendarParser.eveningStartHour
+    evening_start: calendarParser.eveningStartHour
+    evening_end: calendarParser.dayEndHour
+  }
 
 module.exports = meetingController
