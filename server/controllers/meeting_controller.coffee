@@ -2,7 +2,6 @@ Meeting = require "../models/meeting"
 User = require "../models/user"
 googleAuth = require "../helpers/auth/google"
 CalendarParser = require "../helpers/calendar_parser"
-logger = '../helpers/logger'
 
 meetingController =
 
@@ -71,6 +70,23 @@ meetingController =
             response.tandem_users = ({name: user.name, email: user.email} for user in users)
             response.schedule = availability
             res.status(200).send response
+
+  createMeeting: (req, res) ->
+    initiator = req.user
+    User.methods.findByGoogleId initiator.id, (err, initiatorUser) ->
+      googleAuth.getAuthClient initiatorUser, (oauth2Client) ->
+        googleAuth.getUserTimezone oauth2Client, (timezoneSetting) ->
+          timezone = timezoneSetting.value
+          Meeting.methods.create {meeting_initiator: initiator.email}, (meeting) ->
+            googleAuth.getCalendarsFromUsers [initiatorUser], (cals) ->
+              calendarParser = new CalendarParser(timezone, 60)
+              availability = calendarParser.buildMeetingCalendar(cals)
+              response = {}
+              response.calendar_hours = getCalendarTimes(calendarParser)
+              response.meeting_id = meeting._id
+              response.tandem_users = {name: initiatorUser.name, email: initiatorUser.email}
+              response.schedule = availability
+              res.status(200).send response
 
   addMeeting: (req, res) ->
     initiator = req.user

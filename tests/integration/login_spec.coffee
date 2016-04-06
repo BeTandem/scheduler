@@ -14,17 +14,19 @@ database = new Database()
 api = '/api/v1'
 auth = new Auth()
 
+logger = require '../../server/helpers/logger'
+
 #######################
 #LOGIN ROUTE
 
-describe '/login', ->
+describe '/user/login', ->
   returningUserAuth = require '../utils/json/auth/returning_user_auth.json'
   describe 'Post to Login with proper creds', ->
     googleMock.post(googleMock.AUTH).andRespondFromFile('auth/google_authenticated_response.json')
     googleMock.get(googleMock.USER_INFO).andRespondFromFile('google_responses/oauth2.userinfo.with.auth.json')
     it 'should create a new user', (done) ->
       request(app)
-      .post api + '/login'
+      .post api + '/user/login'
       .send returningUserAuth
       .expect 200
       .end (err, response) ->
@@ -44,7 +46,7 @@ describe '/login', ->
   describe 'Post to Login with improper creds', ->
     it 'should return an 400 Bad request error', (done) ->
       request(app)
-      .post api + '/login'
+      .post api + '/user/login'
       .expect 400
       .end (err, response) ->
         if err

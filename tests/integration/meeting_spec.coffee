@@ -22,15 +22,14 @@ logger = require '../../server/helpers/logger'
 #MEETING ROUTE
 
 describe '/meeting', ->
-  describe 'Posting an empty object', ->
+  describe 'GET /meeting', ->
     googleMock.get(googleMock.TIMEZONE).andRespondFromFile('google_responses/calendar.settings.get.timezone.json')
     googleMock.get(googleMock.CAL_LIST).andRespondFromFile('google_responses/calendar.calendarlist.list.json')
     googleMock.post(googleMock.FREEBUSY).andRespondFromFile('google_responses/calendar.freebusy.json')
     it 'should create a new meeting', (done) ->
       request(app)
-      .post api + '/meetings'
+      .get api + '/meeting'
       .set('Authorization', "Bearer " + token)
-      .send {}
       .expect 200
       .end (err, response) ->
         if err
@@ -42,20 +41,21 @@ describe '/meeting', ->
           expect(body.schedule).to.be.lengthOf(5)
           done()
 
-#  describe 'creating a new meeting with unavailable chunks', ->
-#    googleMock.get(googleMock.TIMEZONE).andRespondFromFile('google_responses/calendar.settings.get.timezone.json')
-#    googleMock.get(googleMock.CAL_LIST).andRespondFromFile('google_responses/calendar.calendarlist.list.json')
-#    googleMock.post(googleMock.FREEBUSY).andRespondFromFile('google_responses/calendar.freebusy.time.test.json')
-#    it 'should respond with an object that is unavailable for those chunks', (done) ->
-#      request(app)
-#      .post api + '/meetings'
-#      .set('Authorization', "Bearer " + token)
-#      .send {}
-#      .expect 200
-#      .end (err, response) ->
-#        if err
-#          done(err)
-#        else
-#          body = response.body
-#          logger.debug "body", body
-#          done()
+describe '/meeting/:id', ->
+  describe 'GET /meetin/:id', ->
+    it 'should retrieve a meeting', (done) ->
+      done()
+  describe 'PUT /meetin/:id', ->
+    it 'should update a meeting', (done) ->
+      done()
+  describe 'POST /meetin/:id', ->
+    it 'should send invites for a meeting', (done) ->
+      done()
+
+describe '/meeting/:id/attendee', ->
+  describe 'POST /meetin/:id/attendee', ->
+    it 'should add an attendee to a meeting', (done) ->
+      done()
+  describe 'DELETE /meetin/:id/attendee', ->
+    it 'should delete an attendee from a meeting', (done) ->
+      done()

@@ -12,6 +12,8 @@ ErrorHandler          = require './helpers/error_handler'
 validator = new Validator()
 errorHandler = new ErrorHandler()
 
+logger = require './helpers/logger'
+
 module.exports = (app, router) ->
   app.use passport.initialize()
   if process.env.NODE_ENV != 'test'
@@ -24,43 +26,73 @@ module.exports = (app, router) ->
   app.get "/", (req, res) ->
     res.status(200).send "TandemApi"
 
-  # Login/logout Routes
+  router.route "/user/login"
+  .post (req, res, next) ->
+    err = validator.validateType("login").getValidationErrors(req)
+    if err
+      next(err)
+    else
+      authController.googleLogin(req, res)
+
+  router.route "/meeting"
+  .get bearer, (req, res, next) ->
+    meetingController.createMeeting(req, res)
+
+  router.route "/meeting/:id"
+  .get bearer, (req, res, next) ->
+    res.status(405).send "GET /meeting/:id Not yet implemented"
+  .put bearer, (req, res, next) ->
+    err = validator.validateType("meeting").getValidationErrors(req)
+    if err
+      next(err)
+    meetingController.updateMeeting(req, res)
+  .post bearer, (req, res, next) ->
+    err = validator.validateType("meeting").getValidationErrors(req)
+    if err
+      next(err)
+    meetingController.updateMeeting(req, res)
+
+
+  #############################################
+  # Depricated Routes:
+  ####################
+
   router.route "/login"
-    .post (req, res, next) ->
-      err = validator.validateType("login").getValidationErrors(req)
-      if err
-        next(err)
-      else
-        authController.googleLogin(req, res)
+  .post (req, res, next) ->
+    err = validator.validateType("login").getValidationErrors(req)
+    if err
+      next(err)
+    else
+      authController.googleLogin(req, res)
 
   # Meeting Routes
   router.route "/attendees"
-    .post bearer, (req, res, next) ->
-      err = validator.validateType("add_attendee").getValidationErrors(req)
-      if err
-        next(err)
-      meetingController.addEmail(req, res)
-    .delete bearer, (req, res, next) ->
-      err = validator.validateType("delete_attendee").getValidationErrors(req)
-      if err
-        next(err)
-      meetingController.removeEmail(req, res)
+  .post bearer, (req, res, next) ->
+    err = validator.validateType("add_attendee").getValidationErrors(req)
+    if err
+      next(err)
+    meetingController.addEmail(req, res)
+  .delete bearer, (req, res, next) ->
+    err = validator.validateType("delete_attendee").getValidationErrors(req)
+    if err
+      next(err)
+    meetingController.removeEmail(req, res)
 
   router.route "/meetings/"
-    .post bearer, (req, res, next) ->
-      err = validator.validateType("meeting").getValidationErrors(req)
-      if err
-        next(err)
-      meetingController.addMeeting(req, res)
+  .post bearer, (req, res, next) ->
+    err = validator.validateType("meeting").getValidationErrors(req)
+    if err
+      next(err)
+    meetingController.addMeeting(req, res)
 
   router.route   "/sendMeetingInvite"
-    .post bearer, (req, res, next) ->
-      err = validator.validateType("schedule").getValidationErrors(req)
-      if err
-        next(err)
-      meetingController.sendEmailInvites(req,res)
+  .post bearer, (req, res, next) ->
+    err = validator.validateType("schedule").getValidationErrors(req)
+    if err
+      next(err)
+    meetingController.sendEmailInvites(req,res)
 
   # Testing Routes
   router.route "/calendar/:id"
-    .get (req,res) ->
-      calendarController.getCalendarEvents(req,res)
+  .get (req,res) ->
+    calendarController.getCalendarEvents(req,res)
