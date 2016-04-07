@@ -88,6 +88,9 @@ meetingController =
               response.schedule = availability
               res.status(200).send response
 
+  updateMeeting:(req, res) ->
+    this.addMeeting(req, res)
+
   addMeeting: (req, res) ->
     initiator = req.user
     req.body.meeting_initiator = initiator.email

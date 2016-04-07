@@ -1,6 +1,9 @@
 winston = require 'winston'
 moment = require 'moment'
 
+SERVER_LOG = if process.env.NODE_ENV == 'test' then 'logs/test.log' else 'logs/server.log'
+EXCEPTIONS_LOG = if process.env.NODE_ENV == 'test' then 'logs/test.log' else 'logs/exceptions.log'
+
 logger = new winston.Logger {
   levels:
     server: 0
@@ -28,7 +31,7 @@ logger = new winston.Logger {
     }
     # Write all logger statements log file
     new winston.transports.File {
-      filename: 'logs/server.log'
+      filename: SERVER_LOG
       json: false
       prettyPrint: true
       timestamp: ->
@@ -43,7 +46,7 @@ logger = new winston.Logger {
   ]
   exceptionHandlers: [
     new winston.transports.File {
-      filename: 'logs/exceptions.log'
+      filename: EXCEPTIONS_LOG
       json: false
       prettyPrint: true
     }

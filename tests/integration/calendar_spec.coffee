@@ -20,7 +20,6 @@ Auth = new Auth()
 describe '/calendar/:calendar_id', ->
   describe 'Get Calendar events with proper Auth', ->
     googleMock.get(googleMock.CAL_EVENTS).andRespondFromFile('test.json')
-    database.addUser(database.USER_WITH_AUTH)
     it 'Return JSON from Google', (done)->
       request(app)
         .get(api + '/calendar/111111111111111111111')

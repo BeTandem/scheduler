@@ -42,7 +42,7 @@ module.exports = (app, router) ->
   .get bearer, (req, res, next) ->
     res.status(405).send "GET /meeting/:id Not yet implemented"
   .put bearer, (req, res, next) ->
-    err = validator.validateType("meeting").getValidationErrors(req)
+#    err = validator.validateType("meeting").getValidationErrors(req)
     if err
       next(err)
     meetingController.updateMeeting(req, res)
