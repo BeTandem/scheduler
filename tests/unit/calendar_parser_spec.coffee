@@ -1,20 +1,24 @@
-CalendarParser = require '../../server/helpers/calendar_parser'
+'use strict'
 
+applicationBuilder = require '../utils/test_server_factory'
 moment = require 'moment'
 require 'moment-range'
 require 'moment-timezone'
 
-logger = require '../../server/helpers/logger'
 expect    = require('chai').expect
 timezone = "America/Denver"
 
 
 describe "CalendarParser", ->
+  ioc = {}
+  beforeEach ->
+    ioc = applicationBuilder.getDefaultIoc()
 
   describe "buildEmptyCalendarFormat", ->
-    meetingLength = 60
-    calendarParser = new CalendarParser(timezone, meetingLength);
     it "should properly build a 5-day empty calendar format", (done) ->
+      CalendarParser = ioc.create 'helpers/calendar_parser'
+      meetingLength = 60
+      calendarParser = new CalendarParser(timezone, meetingLength);
       EmptyCalendarFormat = calendarParser.buildEmptyCalendarFormat();
       expect(EmptyCalendarFormat.length).to.equal 5
 
@@ -34,6 +38,7 @@ describe "CalendarParser", ->
   describe "buildMeetingCalendar", ->
 
     it "should build the correct number of availble slots wit no busy", (done) ->
+      CalendarParser = ioc.create 'helpers/calendar_parser'
       meetingLength = 60
       calendarParser = new CalendarParser(timezone, meetingLength);
       calendarAvailability = calendarParser.buildMeetingCalendar([]);
@@ -44,6 +49,7 @@ describe "CalendarParser", ->
       done()
 
     it "should create more availability slots with meeting length of 15 minutes", (done) ->
+      CalendarParser = ioc.create 'helpers/calendar_parser'
       meetingLength = 15
       calendarParser = new CalendarParser(timezone, meetingLength);
       calendarAvailability = calendarParser.buildMeetingCalendar([]);
@@ -54,6 +60,7 @@ describe "CalendarParser", ->
       done()
 
     it "should have no availability for morning, afternoon, and evening on their respective days", (done) ->
+      CalendarParser = ioc.create 'helpers/calendar_parser'
       meetingLength = 60
       calendarParser = new CalendarParser(timezone, meetingLength);
       freeBusyCal = {
@@ -94,6 +101,7 @@ describe "CalendarParser", ->
       done()
 
     it "should have correct availability when only part of the time is availabile", (done) ->
+      CalendarParser = ioc.create 'helpers/calendar_parser'
       meetingLength = 60
       calendarParser = new CalendarParser(timezone);
       freeBusyCal = {

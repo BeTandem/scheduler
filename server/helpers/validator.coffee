@@ -1,3 +1,5 @@
+'use strict'
+
 LoginValidator = require './validators/login_validator'
 AddAttendeeValidator = require './validators/add_attendee_validator'
 DeleteAttendeeValidator = require './validators/delete_attendee_validator'
@@ -13,4 +15,6 @@ class Validator
       when "meeting" then new MeetingValidator(type)
       when "schedule" then new ScheduleValidator(type)
 
-module.exports = Validator
+exports = module.exports = ->
+  return new Validator()
+

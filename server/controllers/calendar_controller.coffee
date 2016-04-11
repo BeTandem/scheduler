@@ -1,22 +1,23 @@
-googleAuth  = require '../helpers/auth/google'
-User        = require '../models/user'
-authController = require './auth_controller'
+'use strict'
 
-calendarController =
+exports = module.exports = (googleAuth, authController, User) ->
+  calendarController =
 
-  getCalendarEvents: (req, res) ->
-    googleId = req.params.id
-    User.findOne {
-      id: googleId
-    }, (err, user) ->
-      if err
-        res.status(500).send(err)
-      else
-        authController.getAuthClient user, (oauth2Client) ->
-          googleAuth.getCalendarEventsList oauth2Client, (err, events) ->
-            if err
-              res.status(500).send(err)
-            else
-              res.status(200).send(events)
+    getCalendarEvents: (req, res) ->
+      googleId = req.params.id
+      User.findOne {
+        id: googleId
+      }, (err, user) ->
+        if err
+          res.status(500).send(err)
+        else
+          authController.getAuthClient user, (oauth2Client) ->
+            googleAuth.getCalendarEventsList oauth2Client, (err, events) ->
+              if err
+                res.status(500).send(err)
+              else
+                res.status(200).send(events)
 
-module.exports = calendarController
+  return calendarController
+
+exports['@require'] = ['helpers/auth/google','controllers/auth_controller', 'models/user']

@@ -1,94 +1,92 @@
-jwt         = require 'jsonwebtoken'
-googleAuth  = require '../helpers/auth/google'
-User        = require '../models/user'
-config      = require 'config'
-secrets     = config.get 'secrets'
+'use strict'
 
-auth =
+exports = module.exports = (jwt, config, googleAuth, User) ->
 
-  googleLogin: (req, res) ->
-    authCode = req.body.code
-    clientId = req.body.clientId
-    redirectUri = req.body.redirectUri
-    secret = config.googleAuthConfig.clientSecret
+  class AuthController
 
-    #Authenticate
-    googleAuth.authenticate authCode, clientId, redirectUri, (err, oauth2Client, tokens) ->
-      if err
-        res.status(500).send err
+    constructor: ->
+      @secrets = config.get 'secrets'
 
-      #get user Info
-      else
-        googleAuth.getUserInfo oauth2Client, (err, googleUser) ->
-          if err
-            res.status(500).send err
-          else
-            # Build User for database
-            googleUser.token = createToken(googleUser)
-            googleUser.auth = tokens
-            User.methods.findOne { id: googleUser.id}, (err, user) ->
-              if err
-                res.status(500).send err
+    googleLogin: (req, res) ->
+      authCode = req.body.code
+      clientId = req.body.clientId
+      redirectUri = req.body.redirectUri
 
-              if user
-                user.token = googleUser.token
-                response = buildAuthResponse(user)
-                res.status(200).send response
-              else
-                User.methods.addUser googleUser, (err, result) ->
-                  if err
-                    res.status(500).send err
-                  else
-                    response = buildAuthResponse(googleUser)
-                    res.status(200).send response
+      #Authenticate
+      googleAuth.authenticate authCode, clientId, redirectUri, (err, oauth2Client, tokens) =>
+        if err
+          res.status(500).send err
 
-  getAuthClient: (user, callback) ->
-    googleAuth.getAuthClient user, (oauth2Client) ->
-      oauth2Client.setCredentials user.auth
-      if callback
-        callback oauth2Client
+        #get user Info
+        else
+          googleAuth.getUserInfo oauth2Client, (err, googleUser) =>
+            if err
+              res.status(500).send err
+            else
+              # Build User for database
+              googleUser.token = @createToken(googleUser)
+              googleUser.auth = tokens
+              User.methods.findOne { id: googleUser.id}, (err, user) =>
+                if err
+                  res.status(500).send err
 
-  validToken: (token, done)->
-    # verify the token
-    verifyToken(token, done)
+                if user
+                  user.token = googleUser.token
+                  response = @buildAuthResponse(user)
+                  res.status(200).send response
+                else
+                  User.methods.addUser googleUser, (err, result) =>
+                    if err
+                      res.status(500).send err
+                    else
+                      response = @buildAuthResponse(googleUser)
+                      res.status(200).send response
 
-  authenticate: (req, res, next) ->
-    # check if user is authenticated
-    if req.isAuthenticated()
+    getAuthClient: (user, callback) ->
+      googleAuth.getAuthClient user, (oauth2Client) ->
+        oauth2Client.setCredentials user.auth
+        if callback
+          callback oauth2Client
+
+    validToken: (token, done)->
+      # verify the token
+      jwt.verify token, @secrets.auth, (err, decoded) ->
+        if (err)
+          return done err, false
+        else
+          # TODO: Check against session store
+          decoded.token = token
+          return done null, decoded
+
+    authenticate: (req, res, next) ->
+      # check if user is authenticated
+      if req.isAuthenticated()
+        return next()
+
+      # otherwise deny
+      res.status(401).send "Unauthorized"
+
+    removeAuthentication: (req, res, next) ->
+      # remove session if logged in
+      if req.isAuthenticated()
+        req.logout()
       return next()
 
-    # otherwise deny
-    res.status(401).send "Unauthorized"
 
-  removeAuthentication: (req, res, next) ->
-    # remove session if logged in
-    if req.isAuthenticated()
-      req.logout()
-    return next()
+    # Private Methods
+    createToken: (user)->
+      return jwt.sign user, @secrets.auth, { expiresIn: 7*24*60*60 }
 
-
-# Private Methods
-createToken = (user)->
-  return jwt.sign user, secrets.auth, { expiresIn: 7*24*60*60 }
-
-verifyToken = (token, done)->
-  # Verify the JWT
-  jwt.verify token, secrets.auth, (err, decoded) ->
-    if (err)
-      return done null, false
-    else
-      # TODO: Check against session store
-      decoded.token = token
-      return done null, decoded
-
-buildAuthResponse = (user) ->
-  response = {}
-  response.id = user._id
-  response.token = user.token
-  response.email = user.email
-  response.name = user.name
-  response.picture = user.picture
-  return response
+    buildAuthResponse: (user) ->
+      response = {}
+      response.id = user._id
+      response.token = user.token
+      response.email = user.email
+      response.name = user.name
+      response.picture = user.picture
+      return response
 
 
-module.exports = auth
+  return new AuthController()
+
+exports['@require'] = ['jsonwebtoken', 'config', 'helpers/auth/google', 'models/user']

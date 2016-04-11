@@ -1,3 +1,5 @@
+'use strict'
+
 nock      = require 'nock'
 
 googleApisUrl = 'https://www.googleapis.com/'
@@ -15,6 +17,7 @@ class GoogleApisMock
   AUTH: /o\/oauth2\/token.*/
   CAL_LIST: /calendar\/v3\/users\/me\/calendarList.*/
   FREEBUSY: /calendar\/v3\/freeBusy.*/
+  ADD_EVENT: /calendar\/v3\/calendars\/.*\/events/
 
   #Methods
   constructor: ()->

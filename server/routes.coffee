@@ -1,27 +1,20 @@
-"use strict"
-authController        = require './controllers/auth_controller'
-meetingController     = require './controllers/meeting_controller'
-calendarController    = require './controllers/calendar_controller'
-passport              = require './middlewares/passport'
-morgan                = require 'morgan'
-googleapis            = require 'googleapis'
-config                = require 'config'
-Validator             = require './helpers/validator'
-ErrorHandler          = require './helpers/error_handler'
+'use strict'
 
-validator = new Validator()
-errorHandler = new ErrorHandler()
-
-logger = require './helpers/logger'
+morgan = require 'morgan'
 
 module.exports = (app, router) ->
+  ioc = app.ioc
+  passport = ioc.create 'middlewares/passport'
+  validator = ioc.create 'helpers/validator'
+  errorHandler = ioc.create 'helpers/error_handler'
+
   app.use passport.initialize()
   if process.env.NODE_ENV != 'test'
     app.use morgan('combined')
   app.use "/api/v1", router
   app.use errorHandler.handler
 
-  bearer = passport.authenticate 'bearer', { session: false }
+  bearer = passport.authenticate 'bearer', {session: false}
 
   app.get "/", (req, res) ->
     res.status(200).send "TandemApi"
@@ -32,25 +25,26 @@ module.exports = (app, router) ->
     if err
       next(err)
     else
+      authController = ioc.create 'controllers/auth_controller'
       authController.googleLogin(req, res)
 
   router.route "/meeting"
   .get bearer, (req, res, next) ->
-    meetingController.createMeeting(req, res)
+    (ioc.create 'controllers/meeting_controller').createMeeting(req, res)
 
   router.route "/meeting/:id"
   .get bearer, (req, res, next) ->
     res.status(405).send "GET /meeting/:id Not yet implemented"
   .put bearer, (req, res, next) ->
-#    err = validator.validateType("meeting").getValidationErrors(req)
+    err = validator.validateType("meeting").getValidationErrors(req)
     if err
       next(err)
-    meetingController.updateMeeting(req, res)
+    (ioc.create 'controllers/meeting_controller').updateMeeting(req, res)
   .post bearer, (req, res, next) ->
     err = validator.validateType("meeting").getValidationErrors(req)
     if err
       next(err)
-    meetingController.updateMeeting(req, res)
+    (ioc.create 'controllers/meeting_controller').updateMeeting(req, res)
 
 
   #############################################
@@ -63,6 +57,7 @@ module.exports = (app, router) ->
     if err
       next(err)
     else
+      authController = ioc.create 'controllers/auth_controller'
       authController.googleLogin(req, res)
 
   # Meeting Routes
@@ -71,28 +66,23 @@ module.exports = (app, router) ->
     err = validator.validateType("add_attendee").getValidationErrors(req)
     if err
       next(err)
-    meetingController.addEmail(req, res)
+    (ioc.create 'controllers/meeting_controller').addEmail(req, res)
   .delete bearer, (req, res, next) ->
     err = validator.validateType("delete_attendee").getValidationErrors(req)
     if err
       next(err)
-    meetingController.removeEmail(req, res)
+    (ioc.create 'controllers/meeting_controller').removeEmail(req, res)
 
   router.route "/meetings/"
   .post bearer, (req, res, next) ->
     err = validator.validateType("meeting").getValidationErrors(req)
     if err
       next(err)
-    meetingController.addMeeting(req, res)
+    (ioc.create 'controllers/meeting_controller').addMeeting(req, res)
 
-  router.route   "/sendMeetingInvite"
+  router.route "/sendMeetingInvite"
   .post bearer, (req, res, next) ->
     err = validator.validateType("schedule").getValidationErrors(req)
     if err
       next(err)
-    meetingController.sendEmailInvites(req,res)
-
-  # Testing Routes
-  router.route "/calendar/:id"
-  .get (req,res) ->
-    calendarController.getCalendarEvents(req,res)
+    (ioc.create 'controllers/meeting_controller').sendEmailInvites(req, res)
