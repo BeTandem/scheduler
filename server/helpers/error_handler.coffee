@@ -1,12 +1,15 @@
-logger = require './logger'
+'use strict'
 
-class ErrorHandler
+exports = module.exports = (logger) ->
 
-  handler: (err, req, res, next) ->
-    if err
-      logger.error err.message, err.stack
-      res.status(400).send({error: err.message})
-    else
-      next()
+  class ErrorHandler
+    handler: (err, req, res, next) ->
+      if err
+        logger.error err.message, err.stack
+        res.status(400).send({error: err.message})
+      else
+        next()
 
-module.exports = ErrorHandler
+  return new ErrorHandler()
+
+exports['@require'] = ['logger']

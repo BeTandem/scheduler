@@ -1,3 +1,5 @@
+'use strict'
+
 nock      = require 'nock'
 
 googleApisUrl = 'https://www.googleapis.com/'
@@ -15,10 +17,11 @@ class GoogleApisMock
   AUTH: /o\/oauth2\/token.*/
   CAL_LIST: /calendar\/v3\/users\/me\/calendarList.*/
   FREEBUSY: /calendar\/v3\/freeBusy.*/
+  ADD_EVENT: /calendar\/v3\/calendars\/.*\/events/
 
   #Methods
   constructor: ()->
-    afterEach (done) ->
+    after (done) ->
       nock.cleanAll();
       done()
 
@@ -47,18 +50,18 @@ class GoogleApisMock
       when GET then loadGetNock(@url, @type, response)
 
 #Private Methods
-loadGetNock = (url, type, response) ->
-  before (done) ->
-    nock(url)
-    .get(type)
-    .reply(200, response)
+loadGetNock = (url, type, response, done) ->
+  nock(url)
+  .get(type)
+  .reply(200, response)
+  if done
     done()
 
-loadPostNock = (url, type, response) ->
-  before (done) ->
-    nock(url)
-    .post(type)
-    .reply(200, response)
+loadPostNock = (url, type, response, done) ->
+  nock(url)
+  .post(type)
+  .reply(200, response)
+  if done
     done()
 
 module.exports = GoogleApisMock

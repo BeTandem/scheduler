@@ -1,3 +1,5 @@
+'use strict'
+
 errorType = "Add Attendee Validation Error: "
 
 class DeleteAttendeeValidator

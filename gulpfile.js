@@ -118,7 +118,7 @@ gulp.task('test', function(){
   */
 
 // Start Nodemon Server
-gulp.task('nodemon', function () {
+gulp.task('nodemon', ['coffee', 'lint'], function () {
   if (!config.build) {
     nodemon({
       exec: 'node --debug',

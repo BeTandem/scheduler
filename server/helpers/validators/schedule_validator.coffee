@@ -1,4 +1,4 @@
-config = require 'config'
+'use strict'
 
 errorType = "Schedule Validation Error: "
 
