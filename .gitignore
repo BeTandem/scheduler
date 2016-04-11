@@ -15,6 +15,7 @@
 /node_modules
 /npm-debug.log
 /dist
+/apidocs/build
 
 # Configurations
 /config/*

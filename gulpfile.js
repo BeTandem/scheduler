@@ -14,7 +14,8 @@ var gulp       = require('gulp'),
     uglify     = require('gulp-uglify'),
     stylish    = require('coffeelint-stylish'),
     mocha      = require('gulp-mocha'),
-    sourcemaps = require('gulp-sourcemaps');
+    sourcemaps = require('gulp-sourcemaps'),
+    apidoc     = require('gulp-apidoc');
 
 
 /**
@@ -74,6 +75,20 @@ gulp.task('watch', function(){
     gulp.watch('./server/**/*.coffee', ['coffee', 'lint']);
   }
 });
+
+/**
+ * APIDOC
+ */
+
+gulp.task('apidoc', function(done){
+  apidoc({
+    src: "apidocs/docs/",
+    dest: "apidocs/build",
+    debug: true,
+    template: "apidocs/template"
+  },done);
+});
+
 
 /**
   * Testing Tasks
