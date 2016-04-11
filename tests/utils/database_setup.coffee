@@ -1,6 +1,6 @@
 'use strict'
 
-exports = module.exports = (db) ->
+exports = module.exports = (db, mongojs) ->
   User = db.collection('user')
   Meeting = db.collection('meeting')
 
@@ -10,6 +10,7 @@ exports = module.exports = (db) ->
     USER_WITH_AUTH: 'google_authenticated_user.json'
     USER_NO_AUTH: 'google_user_with_no_auth.json'
     MEETING_60: 'meeting.60.minute.json'
+    MEETING_30: 'meeting.30.minute.json'
 
     #Methods
     constructor: () ->
@@ -21,6 +22,7 @@ exports = module.exports = (db) ->
       @addUserTask(@USER_WITH_AUTH)
       @addUserTask(@USER_NO_AUTH)
       @addMeetingTask(@MEETING_60)
+      @addMeetingTask(@MEETING_30)
 
 
 
@@ -33,6 +35,7 @@ exports = module.exports = (db) ->
 
     addMeetingTask: (meetingType) ->
       document = require './json/meetings/' + meetingType
+      document._id = mongojs.ObjectId(document._id)
       @tasks.push {
         collection: Meeting,
         document: document,
@@ -71,4 +74,4 @@ exports = module.exports = (db) ->
 
   return new Database()
 
-exports['@require'] = ['database']
+exports['@require'] = ['database', 'mongojs']

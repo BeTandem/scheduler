@@ -5,27 +5,29 @@ exports = module.exports = (mongojs, db, logger) ->
   Meeting.methods =
 
     create: (meeting, callback) ->
-      return Meeting.insert meeting , (err, result) ->
+      return Meeting.insert meeting, (err, result) ->
         if err
           logger.error("Meetings Model Error:", err)
         else if callback
           callback(result)
 
     findById: (id, callback) ->
-      return Meeting.find {
+      Meeting.findOne {
         _id: mongojs.ObjectId(id)
-        }
+      }, (err, result) ->
+        if callback
+          callback(err, result)
 
     update: (id, data, callback) ->
-      return Meeting.findAndModify {
+      Meeting.findAndModify {
         query: {_id: mongojs.ObjectId(id)}
-        update: { $set: data }
+        update: {$set: data}
         new: true
-        }, (err, result) ->
-          if err
-            logger.error("Meetings Model Error:", err)
-          else if callback
-            callback(result)
+      }, (err, result) ->
+        if err
+          logger.error("Meetings Model Error:", err)
+        if callback
+          callback(err, result)
 
   return Meeting
 

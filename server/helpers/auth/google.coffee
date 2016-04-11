@@ -81,6 +81,7 @@ exports = module.exports = (User, googleapis, config, logger) ->
           logger.error "GoogleApis settings error:", err
         if callback
           callback settings
+          #TODO: return potential error in callback
 
 
   # Private Methods
