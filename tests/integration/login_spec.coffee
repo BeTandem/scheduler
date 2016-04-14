@@ -57,14 +57,15 @@ describe '/user/login', ->
           expect(response.body).to.have.property('error')
           done()
 
-# Need to implement this functionality (Issue #50)
+## Need to implement this functionality (Issue #50)
 #  describe 'Post to Login without refresh token', ->
+#    authFromFrontend = require '../utils/json/auth/returning_user_auth.json'
 #    googleMock.post(googleMock.AUTH).andRespondFromFile('auth/google_authenticated_response.json')
 #    googleMock.get(googleMock.USER_INFO).andRespondFromFile('google_responses/oauth2.userinfo.without.auth.json')
 #    it 'should return an error', (done) ->
 #      request(app)
 #      .post api + '/login'
-#      .send returningUserAuth
+#      .send authFromFrontend
 #      .expect 401
 #      .end (err, response) ->
 #        if err

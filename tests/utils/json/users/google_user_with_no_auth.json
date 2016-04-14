@@ -1,8 +1,8 @@
 {
   "id": "111111111111111111111",
-  "email": "test@example.com",
+  "email": "no-auth-user@example.com",
   "verified_email": true,
-  "name": "Test User",
+  "name": "No Auth User",
   "given_name": "Test",
   "family_name": "User",
   "link": "https://plus.google.com/111111111111111111111",

@@ -22,29 +22,39 @@ module.exports = (app, router) ->
   router.route "/user/login"
   .post (req, res, next) ->
     err = validator.validateType("login").getValidationErrors(req)
-    if err
-      next(err)
+    if err then next(err)
     else
       authController = ioc.create 'controllers/auth_controller'
       authController.googleLogin(req, res)
 
   router.route "/meeting"
   .get bearer, (req, res, next) ->
-    (ioc.create 'controllers/meeting_controller').createMeeting(req, res, next)
+    ioc.create('controllers/meeting_controller').createMeeting(req, res, next)
 
   router.route "/meeting/:id"
   .get bearer, (req, res, next) ->
     ioc.create('controllers/meeting_controller').getMeeting(req, res, next)
   .put bearer, (req, res, next) ->
     err = validator.validateType("meeting").getValidationErrors(req)
-    if err
-      next(err)
-    (ioc.create 'controllers/meeting_controller').updateMeeting(req, res, next)
+    if err then next(err)
+    else
+      ioc.create('controllers/meeting_controller').updateMeeting(req, res, next)
   .post bearer, (req, res, next) ->
     err = validator.validateType("meeting").getValidationErrors(req)
-    if err
-      next(err)
-    (ioc.create 'controllers/meeting_controller').sendEmailInvites(req, res, next)
+    if err then next(err)
+    else
+      ioc.create('controllers/meeting_controller').sendEmailInvites(req, res, next)
+
+  router.route "/meeting/:id/attendee"
+  .post bearer, (req, res, next) ->
+#    err = validator.validateType("add_attendee").getValidationErrors(req)
+#    if err then next(err)
+#    else
+    ioc.create('controllers/meeting_controller').addEmail(req, res , next)
+  .delete bearer, (req, res, next) ->
+    err = validator.validateType("delete_attendee").getValidationErrors(req)
+    if err then next(err)
+    res.status(405).send("Not yet implemented")
 
 
   #############################################
@@ -66,12 +76,14 @@ module.exports = (app, router) ->
     err = validator.validateType("add_attendee").getValidationErrors(req)
     if err
       next(err)
-    (ioc.create 'controllers/meeting_controller').addEmail(req, res)
+    req.params.id = req.body.meeting_id
+    ioc.create('controllers/meeting_controller').addEmail(req, res)
   .delete bearer, (req, res, next) ->
     err = validator.validateType("delete_attendee").getValidationErrors(req)
     if err
       next(err)
-    (ioc.create 'controllers/meeting_controller').removeEmail(req, res)
+    req.params.id = req.body.meeting_id
+    ioc.create('controllers/meeting_controller').removeEmail(req, res)
 
   router.route "/meetings/"
   .post bearer, (req, res, next) ->
@@ -79,11 +91,11 @@ module.exports = (app, router) ->
     if err
       next(err)
     req.params.id = req.body.id
-    (ioc.create 'controllers/meeting_controller').updateMeeting(req, res)
+    ioc.create('controllers/meeting_controller').updateMeeting(req, res)
 
   router.route "/sendMeetingInvite"
   .post bearer, (req, res, next) ->
     err = validator.validateType("schedule").getValidationErrors(req)
     if err
       next(err)
-    (ioc.create 'controllers/meeting_controller').sendEmailInvites(req, res)
+    ioc.create('controllers/meeting_controller').sendEmailInvites(req, res)

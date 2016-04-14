@@ -5,29 +5,26 @@ exports = module.exports = (mongojs, db) ->
   User.methods =
 
     findById: (id, callback) ->
-      return User.find {
+      return User.findOne {
         _id: mongojs.ObjectId(id)
       }, (err, user) ->
         if err
           console.log "Find user by id error:", err
-        if callback
-          callback err, user
+        callback err, user
 
     findByGoogleId: (id, callback) ->
-      return User.find {
+      return User.findOne {
         id: id
       }, (err, user) ->
         if err
           console.log "Find user by id error:", err
-        if callback && user
-          callback err, user[0]
+        callback err, user
 
     addUser: (user, callback)->
       db.collection('user').insert user, (err, result) ->
         if err
           console.log "Add User error", err
-        if callback
-          callback err, result
+        callback err, result
 
     update: (id, data, callback) ->
       return User.findAndModify {
@@ -37,15 +34,13 @@ exports = module.exports = (mongojs, db) ->
         }, (err, result) ->
           if err
             console.log "Update user error:", err
-          if callback
-            callback err, result
+          callback err, result
 
     findOne: (profileId, callback)->
       User.findOne profileId, (err, result) ->
         if err
           console.log "Find one user error:", err
-        if callback
-          callback err, result
+        callback err, result
 
     findByEmailList: (emails, callback) ->
       return User.find {
@@ -53,8 +48,7 @@ exports = module.exports = (mongojs, db) ->
       }, (err, users) ->
         if err
           console.log "Find user by email list error:", err
-        if callback
-          callback err, users
+        callback err, users
 
     updateAuth: (googleId, tokens, callback) ->
       return User.findAndModify {
@@ -63,8 +57,7 @@ exports = module.exports = (mongojs, db) ->
       }, (err, result) ->
         if err || !result
           console.log "Update user auth error:", err
-        if callback
-          calback(err, result)
+        calback(err, result)
 
   return User
 

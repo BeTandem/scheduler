@@ -43,10 +43,9 @@ exports = module.exports = (jwt, config, googleAuth, User) ->
                       res.status(200).send response
 
     getAuthClient: (user, callback) ->
-      googleAuth.getAuthClient user, (oauth2Client) ->
+      googleAuth.getAuthClient user, (err, oauth2Client) ->
         oauth2Client.setCredentials user.auth
-        if callback
-          callback oauth2Client
+        callback oauth2Client
 
     validToken: (token, done)->
       # verify the token
