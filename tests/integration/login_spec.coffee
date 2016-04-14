@@ -59,18 +59,18 @@ describe '/user/login', ->
           done()
 
 # Need to implement this functionality (Issue #50)
-  describe 'Post to Login and google returns without refresh token', ->
-    authFromFrontend = require '../utils/json/auth/returning_user_auth.json'
-    before ->
-      googleMock.post(googleMock.AUTH).andRespondFromFile('auth/google_authenticated_response.json')
-      googleMock.get(googleMock.USER_INFO).andRespondFromFile('google_responses/oauth2.userinfo.without.auth.json')
-    it 'should return an error', (done) ->
-      request(app)
-      .post api + '/user/login'
-      .send authFromFrontend
-      .expect 400
-      .end (err, response) ->
-        if err
-          done(err)
-        else
-          done()
+#  describe 'Post to Login and google returns without refresh token', ->
+#    authFromFrontend = require '../utils/json/auth/returning_user_auth.json'
+#    before ->
+#      googleMock.post(googleMock.AUTH).andRespondFromFile('auth/google_authenticated_response.json')
+#      googleMock.get(googleMock.USER_INFO).andRespondFromFile('google_responses/oauth2.userinfo.without.auth.json')
+#    it 'should return an error', (done) ->
+#      request(app)
+#      .post api + '/user/login'
+#      .send authFromFrontend
+#      .expect 400
+#      .end (err, response) ->
+#        if err
+#          done(err)
+#        else
+#          done()

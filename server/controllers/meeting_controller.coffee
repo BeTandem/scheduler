@@ -86,7 +86,7 @@ exports = module.exports = (googleAuth, CalendarParser, Meeting, User) ->
               if err then return next(err)
               res.status(200).send(event)
 #TODO: left off here with error handling task
-    addEmail: (req, res, next) ->
+    addAttendee: (req, res, next) ->
       meeting_id = req.params.id
       email = req.body.email
 
@@ -122,10 +122,10 @@ exports = module.exports = (googleAuth, CalendarParser, Meeting, User) ->
               response.schedule = availability
               res.status(200).send response
 
-    removeEmail: (req, res, next) ->
+    removeAttendee: (req, res, next) ->
       response = {}
-      meeting_id = req.query.meeting_id
-      email = req.query.email
+      meeting_id = req.params.id
+      email = req.params.email
       Meeting.methods.findById meeting_id, (err, doc) ->
         if err then return next(err)
         initiator = doc.meeting_initiator
@@ -155,38 +155,38 @@ exports = module.exports = (googleAuth, CalendarParser, Meeting, User) ->
                 response.schedule = availability
                 res.status(200).send response
 
-    addMeeting: (req, res) ->
-      initiator = req.user
-      req.body.meeting_initiator = initiator.email
-
-      lenInMin = req.body.length_in_min
-
-      User.methods.findByGoogleId initiator.id, (err, initiatorUser) ->
-        if err then return next(err)
-        googleAuth.getAuthClient initiatorUser, (err, oauth2Client) ->
-          if err then return next(err)
-          googleAuth.getUserTimezone oauth2Client, (err, timezoneSetting) ->
-            if err then return next(err)
-            timezone = timezoneSetting.value
-            req.body.timezone = timezone
-            Meeting.methods.create req.body, (err, meeting) ->
-              if err then return next(err)
-              emails = [req.user.email]
-              if req.body.attendees
-                emails = emails.concat (attendee.email for attendee in req.body.attendees)
-              UsersFromEmails emails, (err, users) ->
-                if err then return next(err)
-                googleAuth.getCalendarsFromUsers users, (err, cals) ->
-                  if err then return next(err)
-                  calendarParser = new CalendarParser(timezone, lenInMin)
-                  availability = calendarParser.buildMeetingCalendar(cals)
-                  response = {}
-                  response.calendar_hours = getCalendarTimes(calendarParser)
-  #                logger.debug "cal hours", response.calendar_hours
-                  response.meeting_id = meeting._id
-                  response.tandem_users = ({name: user.name, email: user.email} for user in users)
-                  response.schedule = availability
-                  res.status(200).send response
+#    addMeeting: (req, res) ->
+#      initiator = req.user
+#      req.body.meeting_initiator = initiator.email
+#
+#      lenInMin = req.body.length_in_min
+#
+#      User.methods.findByGoogleId initiator.id, (err, initiatorUser) ->
+#        if err then return next(err)
+#        googleAuth.getAuthClient initiatorUser, (err, oauth2Client) ->
+#          if err then return next(err)
+#          googleAuth.getUserTimezone oauth2Client, (err, timezoneSetting) ->
+#            if err then return next(err)
+#            timezone = timezoneSetting.value
+#            req.body.timezone = timezone
+#            Meeting.methods.create req.body, (err, meeting) ->
+#              if err then return next(err)
+#              emails = [req.user.email]
+#              if req.body.attendees
+#                emails = emails.concat (attendee.email for attendee in req.body.attendees)
+#              UsersFromEmails emails, (err, users) ->
+#                if err then return next(err)
+#                googleAuth.getCalendarsFromUsers users, (err, cals) ->
+#                  if err then return next(err)
+#                  calendarParser = new CalendarParser(timezone, lenInMin)
+#                  availability = calendarParser.buildMeetingCalendar(cals)
+#                  response = {}
+#                  response.calendar_hours = getCalendarTimes(calendarParser)
+#  #                logger.debug "cal hours", response.calendar_hours
+#                  response.meeting_id = meeting._id
+#                  response.tandem_users = ({name: user.name, email: user.email} for user in users)
+#                  response.schedule = availability
+#                  res.status(200).send response
 
   # Private Helpers
   timezoneFromUserId = (id, callback) ->

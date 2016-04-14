@@ -11,6 +11,7 @@ exports = module.exports = (db, mongojs) ->
     USER_NO_AUTH: 'google_user_with_no_auth.json'
     MEETING_60: 'meeting.60.minute.json'
     MEETING_30: 'meeting.30.minute.json'
+    MEETING_WITH_EMAIL: 'meeting.30.minute.with.emails.json'
 
     #Methods
     constructor: () ->
@@ -23,6 +24,7 @@ exports = module.exports = (db, mongojs) ->
       @addUserTask(@USER_NO_AUTH)
       @addMeetingTask(@MEETING_60)
       @addMeetingTask(@MEETING_30)
+      @addMeetingTask(@MEETING_WITH_EMAIL)
 
 
 

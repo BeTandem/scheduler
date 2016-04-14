@@ -153,11 +153,3 @@ describe '/meeting/:id', ->
           expect(body).to.have.property("end")
           expect(body).to.have.property("summary")
           done()
-
-#describe '/meeting/:id/attendee', ->
-#  describe 'POST /meeting/:id/attendee', ->
-#    it 'should add an attendee to a meeting', (done) ->
-#      done()
-#  describe 'DELETE /meeting/:id/attendee', ->
-#    it 'should delete an attendee from a meeting', (done) ->
-#      done()

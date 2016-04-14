@@ -1,6 +1,6 @@
 'use strict'
 
-errorType = "Add Attendee Validation Error: "
+errorType = "Delete Attendee Validation Error: "
 
 class DeleteAttendeeValidator
   constructor: (type) ->
@@ -8,9 +8,7 @@ class DeleteAttendeeValidator
 
   getValidationErrors: (req) ->
     errors = []
-    if not req.query.meeting_id?
-      errors.push errorType + "Required field 'meeting_id' not provided"
-    if not req.query.email?
+    if not req.params.email?
       errors.push errorType + "Required field 'email' not provided"
 
     if errors.length > 0

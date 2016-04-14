@@ -16,8 +16,8 @@ exports = module.exports = (User, googleapis, config, logger) ->
       oauth2.userinfo.get {
         auth: oauth2Client
       }, (err, googleUser) ->
-        if not googleUser.auth
-          err = new Error("Googleapis returned user with no auth")
+#        if not googleUser.auth
+#          err = new Error("Googleapis returned user with no auth")
         if err
           logger.error "Googleapis User Info Error:", err
         callback err, googleUser
