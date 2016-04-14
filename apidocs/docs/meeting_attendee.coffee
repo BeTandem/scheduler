@@ -1,6 +1,6 @@
 
 ###
-@api {post} /meeting/:id/attendee Attendee add
+@api {post} /meeting/:id/attendee/:email Attendee add
 @apiName AddAttendee
 @apiGroup Meeting/Attendee
 
@@ -11,6 +11,7 @@
 }
 
 @apiParam (Url Param) {String} id Meeting's unique id.
+@apiParam (Url Param) {String} email User email to add.
 @apiParam (Post Param) {string} email User email to add.
 @apiParamExample Example Post Object:
 {
@@ -58,7 +59,7 @@ HTTP/1.1 200 OK
 ###
 
 ###
-@api {delete} /meeting/:id/attendee Attendee delete
+@api {delete} /meeting/:id/attendee/:email Attendee delete
 @apiName DeleteAttendee
 @apiGroup Meeting/Attendee
 
@@ -69,11 +70,7 @@ HTTP/1.1 200 OK
 }
 
 @apiParam (Url Param) {String} id Meeting's unique id.
-@apiParam (Post Param) {string} email Email address of Atendee to delete.
-@apiParamExample Example Post Object:
-{
-  "email":"xxxxxxxx@gmail.com"
-}
+@apiParam (Url Param) {String} email Email address to delete.
 
 @apiSuccess {String} calendar_hours Start and end times of each time block.
 @apiSuccess {String} meeting_id  Id of the Meeting.
