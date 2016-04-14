@@ -16,10 +16,10 @@ exports = module.exports = (User, googleapis, config, logger) ->
       oauth2.userinfo.get {
         auth: oauth2Client
       }, (err, googleUser) ->
+        if not googleUser.auth
+          err = new Error("Googleapis returned user with no auth")
         if err
           logger.error "Googleapis User Info Error:", err
-        if googleUser.auth == null
-          err = new Error("Googleapis returned user with no auth")
         callback err, googleUser
 
     getCalendarEventsList: (oauth2Client, callback) ->

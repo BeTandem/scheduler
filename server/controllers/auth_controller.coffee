@@ -7,40 +7,31 @@ exports = module.exports = (jwt, config, googleAuth, User) ->
     constructor: ->
       @secrets = config.get 'secrets'
 
-    googleLogin: (req, res) ->
+    googleLogin: (req, res, next) ->
       authCode = req.body.code
       clientId = req.body.clientId
       redirectUri = req.body.redirectUri
 
       #Authenticate
       googleAuth.authenticate authCode, clientId, redirectUri, (err, oauth2Client, tokens) =>
-        if err
-          res.status(500).send err
-
-        #get user Info
-        else
-          googleAuth.getUserInfo oauth2Client, (err, googleUser) =>
-            if err
-              res.status(500).send err
+        if err then return next(err)
+        googleAuth.getUserInfo oauth2Client, (err, googleUser) =>
+          if err then return next(err)
+          # Build User for database
+          googleUser.token = @createToken(googleUser)
+          googleUser.auth = tokens
+          User.methods.findOne { id: googleUser.id}, (err, user) =>
+            if err then return next(err)
+            if user
+              user.token = googleUser.token
+              response = @buildAuthResponse(user)
+              res.status(200).send response
             else
-              # Build User for database
-              googleUser.token = @createToken(googleUser)
-              googleUser.auth = tokens
-              User.methods.findOne { id: googleUser.id}, (err, user) =>
-                if err
-                  res.status(500).send err
-
-                if user
-                  user.token = googleUser.token
-                  response = @buildAuthResponse(user)
-                  res.status(200).send response
+              User.methods.addUser googleUser, (err, result) =>
+                if err then return next(err)
                 else
-                  User.methods.addUser googleUser, (err, result) =>
-                    if err
-                      res.status(500).send err
-                    else
-                      response = @buildAuthResponse(googleUser)
-                      res.status(200).send response
+                  response = @buildAuthResponse(googleUser)
+                  res.status(200).send response
 
     getAuthClient: (user, callback) ->
       googleAuth.getAuthClient user, (err, oauth2Client) ->
