@@ -8,6 +8,8 @@ require 'moment-timezone'
 expect    = require('chai').expect
 timezone = "America/Denver"
 
+numberOfCalendarDays = 7
+
 
 describe "CalendarParser", ->
   ioc = {}
@@ -20,7 +22,7 @@ describe "CalendarParser", ->
       meetingLength = 60
       calendarParser = new CalendarParser(timezone, meetingLength);
       EmptyCalendarFormat = calendarParser.buildEmptyCalendarFormat();
-      expect(EmptyCalendarFormat.length).to.equal 5
+      expect(EmptyCalendarFormat.length).to.equal numberOfCalendarDays
 
       #test values for next day (since current day may not have times)
       tomorrow = EmptyCalendarFormat[1]
@@ -42,7 +44,7 @@ describe "CalendarParser", ->
       meetingLength = 60
       calendarParser = new CalendarParser(timezone, meetingLength);
       calendarAvailability = calendarParser.buildMeetingCalendar([]);
-      expect(calendarAvailability.length).to.equal 5
+      expect(calendarAvailability.length).to.equal numberOfCalendarDays
       expect(calendarAvailability[1].morning.length).to.equal 13
       expect(calendarAvailability[1].afternoon.length).to.equal 17
       expect(calendarAvailability[1].evening.length).to.equal 9
@@ -53,7 +55,7 @@ describe "CalendarParser", ->
       meetingLength = 15
       calendarParser = new CalendarParser(timezone, meetingLength);
       calendarAvailability = calendarParser.buildMeetingCalendar([]);
-      expect(calendarAvailability.length).to.equal 5
+      expect(calendarAvailability.length).to.equal numberOfCalendarDays
       expect(calendarAvailability[1].morning.length).to.equal 16
       expect(calendarAvailability[1].afternoon.length).to.equal 20
       expect(calendarAvailability[1].evening.length).to.equal 12

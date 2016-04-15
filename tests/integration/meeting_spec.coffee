@@ -15,7 +15,7 @@ auth = new Auth()
 user = require '../utils/json/users/google_authenticated_user.json'
 bearerToken = "Bearer " + auth.createToken(user)
 
-NumberOfCalendarDays = 5
+NumberOfCalendarDays = 7
 
 #######################
 #MEETING ROUTE

@@ -2,6 +2,8 @@
 
 exports = module.exports = (_, moment)->
 
+  calendarDays = 7
+
 # load dependencies for moment
   require 'moment-range'
   require 'moment-timezone'
@@ -77,7 +79,7 @@ exports = module.exports = (_, moment)->
       calendarChunks = []
       # Get Range
       nowTime = moment()
-      weekFromNow = moment(nowTime).add(moment.duration(4, 'days'))
+      weekFromNow = moment(nowTime).add(moment.duration(calendarDays-1, 'days'))
       week = moment.range(nowTime, weekFromNow)
 
       #iterate through days to create time chunks
