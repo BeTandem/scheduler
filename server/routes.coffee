@@ -35,14 +35,10 @@ module.exports = (app, router) ->
     ioc.create('controllers/meeting_controller').getMeeting(req, res, next)
   .put bearer, (req, res, next) ->
     err = validator.validateType("meeting").getValidationErrors(req)
-    if err then next(err)
-    else
-      ioc.create('controllers/meeting_controller').updateMeeting(req, res, next)
+    if err then return next(err)
+    ioc.create('controllers/meeting_controller').updateMeeting(req, res, next)
   .post bearer, (req, res, next) ->
-    err = validator.validateType("meeting").getValidationErrors(req)
-    if err then next(err)
-    else
-      ioc.create('controllers/meeting_controller').sendEmailInvites(req, res, next)
+    ioc.create('controllers/meeting_controller').sendEmailInvites(req, res, next)
 
   router.route "/meeting/:id/attendee/:email"
   .post bearer, (req, res, next) ->

@@ -63,7 +63,7 @@ exports = module.exports = (googleAuth, CalendarParser, Meeting, User) ->
       meeting_id = req.params.id or req.body.meeting_id
       meetingSummary = req.body.meeting_summary
       meetingLocation = req.body.meeting_location
-      timeSelections = req.body.meeting_time_selection
+      timeSelection = req.body.meeting_time_selection
 
       Meeting.methods.findById meeting_id, (err, meeting) ->
         if err then return next(err)
@@ -73,15 +73,11 @@ exports = module.exports = (googleAuth, CalendarParser, Meeting, User) ->
           googleAuth.getAuthClient user, (err, oauth2Client) ->
             if err then return next(err)
             emailsArr = (attendee.email for attendee in meeting.attendees)
-
-            #TODO: remove randomly choose time slot
-            slot = timeSelections[Math.floor(Math.random() * (timeSelections.length-1))]
-
             meetingInfo =
               meetingSummary: meetingSummary
               meetingLocation: meetingLocation
               meetingAttendees: emailsArr
-              timeSlot: slot
+              timeSlot: timeSelection
             googleAuth.sendCalendarInvite oauth2Client, meetingInfo, (err, event) ->
               if err then return next(err)
               res.status(200).send(event)
