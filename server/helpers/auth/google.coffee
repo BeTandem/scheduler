@@ -10,17 +10,17 @@ exports = module.exports = (User, googleapis, config, logger) ->
       oauth2Client = buildAuthClient clientId, redirect_uri
       getAuthToken authCode, oauth2Client, (err, tokens) ->
         oauth2Client.setCredentials(tokens)
-        if callback
-          callback err, oauth2Client, tokens
+        callback err, oauth2Client, tokens
 
     getUserInfo: (oauth2Client, callback) ->
       oauth2.userinfo.get {
         auth: oauth2Client
       }, (err, googleUser) ->
+#        if not googleUser.auth
+#          err = new Error("Googleapis returned user with no auth")
         if err
           logger.error "Googleapis User Info Error:", err
-        if callback
-          callback err, googleUser
+        callback err, googleUser
 
     getCalendarEventsList: (oauth2Client, callback) ->
       calendar.events.list {
@@ -29,24 +29,26 @@ exports = module.exports = (User, googleapis, config, logger) ->
       }, (err, events)->
         if err
           logger.error "Googleapis Calendar Events Error:", err
-        if callback
-          callback err, events
+        callback err, events
 
     getCalendarsFromUsers: (userList, callback) ->
       busyFreePromiseList = []
       for user in userList
-        getStoredAuthClient user, (oauth2Client) ->
+        getStoredAuthClient user, (err, oauth2Client) ->
           if oauth2Client
             busyFreePromise = getCalendarFreeBusy(oauth2Client)
             busyFreePromiseList.push busyFreePromise
+          else
+            busyFreePromiseList.push Promise.reject(err)
 
       Promise.all(busyFreePromiseList).then (eventsList) ->
-        callback(eventsList)
+        callback(null, eventsList)
+      .catch (errors) ->
+        callback(errors)
 
     getAuthClient: (user, callback) ->
-      return getStoredAuthClient user, (oauth2Client) ->
-        if oauth2Client && callback
-          callback oauth2Client
+      return getStoredAuthClient user, (err, oauth2Client) ->
+        callback err, oauth2Client
 
     sendCalendarInvite: (oauth2Client, meetingInfo, callback) ->
       event =
@@ -67,10 +69,9 @@ exports = module.exports = (User, googleapis, config, logger) ->
       }, (err, event) ->
         if err
           logger.error 'There was an error contacting the Calendar service: ', err
-          return err
-        logger.info 'Event created: ' + event.htmlLink
-        if callback
-          callback(event)
+        else
+          logger.info 'Event created: ' + event.htmlLink
+        callback(err, event)
 
     getUserTimezone: (oauth2Client, callback) ->
       calendar.settings.get {
@@ -79,42 +80,39 @@ exports = module.exports = (User, googleapis, config, logger) ->
       }, (err, settings) ->
         if err
           logger.error "GoogleApis settings error:", err
-        if callback
-          callback settings
-
+        callback err, settings
 
   # Private Methods
   getStoredAuthClient = (user, callback) ->
     clientId = config.googleAuthConfig.clientId
     redirectUri = config.googleAuthConfig.redirectUri
     oauth2Client = buildAuthClient clientId, redirectUri
+
     if !user.auth
-      logger.error "Googleapis Auth token not stored for:" + user.email
-      return callback(null)
-
-
+      errorMessage = "Googleapis Auth token not stored for:" + user.email
+      logger.error errorMessage
+      return callback(new Error(errorMessage))
     oauth2Client.setCredentials user.auth
 
     # Need to refresh access token
     if user.auth.expiry_date < (new Date).getTime()
       logger.info("Refreshing Access Token")
       tokenPromise = refreshAccessToken(oauth2Client)
-      tokenPromise.then (tokens)->
+      tokenPromise
+      .then (tokens)->
         User.methods.updateAuth user.id, tokens
         oauth2Client.setCredentials tokens
-        if callback
-          callback(oauth2Client)
-
+        callback(null, oauth2Client)
+      .catch (err) ->
+        callback(err)
     else
-      if callback
-        callback(oauth2Client)
+      callback(null, oauth2Client)
 
   getAuthToken = (authCode, oauth2Client, callback)->
     oauth2Client.getToken authCode, (err, tokens)->
       if err
         logger.error "Googleapis Token Error:", err
-      if callback
-        return callback err, tokens
+      return callback err, tokens
 
   refreshAccessToken = (oauth2Client) ->
     tokensPromise = new Promise (resolve, reject) ->
@@ -139,20 +137,7 @@ exports = module.exports = (User, googleapis, config, logger) ->
     }, (err, calendarIds) ->
       if err
         logger.error "Get Calendar Ids Error:", err
-      if callback
-        callback(err, calendarIds)
-
-  getEventsCalendar = (calendarId, oauth2Client)->
-    return new Promise (resolve, reject)->
-      calendar.events.list {
-        calendarId: calendarId || 'primary'
-        auth: oauth2Client
-      }, (err, events) ->
-        if err
-          logger.error "Googleapis Get Users Calendars Error", err
-          reject(err)
-        else
-          resolve(events)
+      callback(err, calendarIds)
 
   getCalendarFreeBusy = (oauth2Client) ->
     today = new Date()

@@ -213,150 +213,36 @@ HTTP/1.1 200 OK
 @apiSuccessExample Successful Response:
 HTTP/1.1 200 OK
 {
-  "calendar_hours": {
-    "morning_start": 8,
-    "morning_end": 12,
-    "afternoon_start": 12,
-    "afternoon_end": 17,
-    "evening_start": 17,
-    "evening_end": 20
+  "kind": "calendar#event",
+  "etag": "\"2920696425212000\"",
+  "id": "8l3g6mmu7qaia6hh8axxxxxxx",
+  "status": "confirmed",
+  "htmlLink": "https://www.google.com/calendar/event?eid=OGwzZzZtbXU3cWFpYTZoaDhhZGlkbxxxxxxxxx",
+  "created": "2016-04-11T04:16:52.000Z",
+  "updated": "2016-04-11T04:16:52.606Z",
+  "summary": "Summary Goes Here",
+  "description": "<div class=\"container\" style=\"width: 320px; margin-top: 40px; padding: 10px 10px; background-color: #d9d9d9; border-radius: 6px; text-align: center;\">\n<h4 style=\"margin-bottom: 0;\">This meeting was scheduled with</h4>\n<h2 style=\"margin-top: 0; margin-bottom: 30px;\">Tandem Scheduler</h2>\n<p style=\"text-align: center;\">Do you want to schedule meetings in <strong>less than 30</strong> seconds?<br/><br/>\n    <a href=\"https://betandem.com\" target=\"_blank\">Learn More</a> | <a href=\"https://beta.betandem.com\" target=\"_blank\">Try out our beta!</a>\n</p>\n<h6 style=\"margin-top:10px; text-align:center;\">Have feedback to make Tandem better? &nbsp;<a href=\"mailto:tandemscheduler@gmail.com?subject=Tandem Scheduler Feedback\">Send us a messsage</a></h6>\n</div>\n",
+  "location": "asdfsdf",
+  "creator": {
+    "email": "test@example.com",
+    "displayName": "Test User",
+    "self": true
   },
-  "meeting_id": "5701bfe987e53e9e06ce5b48",
-  "tandem_users": [
-    {
-      "name": "Test User",
-      "email": "test@example.com"
-    }
-  ],
-  "schedule": [
-    {
-      "day_code": "Sun, Apr 3rd",
-      "morning": [
-        {
-          "start": "2016-04-04T14:45:00.000Z",
-          "end": "2016-04-04T15:45:00.000Z"
-        }
-      ],
-      "afternoon": [],
-      "evening": []
-    },
-    ...
-  ]
-}
-###
-
-###
-@api {post} /meeting/:id/attendee Attendee add
-@apiName AddAttendee
-@apiGroup Meeting/Attendee
-
-@apiHeader {String} Authorization Bearer auth token.
-@apiHeaderExample {json} Header-Example:
-{
-  "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
-}
-
-@apiParam (Url Param) {String} id Meeting's unique id.
-@apiParam (Post Param) {string} email User email to add.
-@apiParamExample Example Post Object:
-{
-  "email":"xxxxxxxx@gmail.com"
-}
-
-@apiSuccess {String} calendar_hours Start and end times of each time block.
-@apiSuccess {String} meeting_id  Id of the Meeting.
-@apiSuccess {String} tandem_users  List of Users that are currently in the System.
-@apiSuccess {String} schedule  List of all the Available time-slots.
-
-@apiSuccessExample Successful Response:
-HTTP/1.1 200 OK
-{
-  "calendar_hours": {
-    "morning_start": 8,
-    "morning_end": 12,
-    "afternoon_start": 12,
-    "afternoon_end": 17,
-    "evening_start": 17,
-    "evening_end": 20
+  "organizer": {
+    "email": "test@example.com",
+    "displayName": "Test User",
+    "self": true
   },
-  "meeting_id": "5701bfe987e53e9e06ce5b48",
-  "tandem_users": [
-    {
-      "name": "Test User",
-      "email": "test@example.com"
-    }
-  ],
-  "schedule": [
-    {
-      "day_code": "Sun, Apr 3rd",
-      "morning": [
-        {
-          "start": "2016-04-04T14:45:00.000Z",
-          "end": "2016-04-04T15:45:00.000Z"
-        }
-      ],
-      "afternoon": [],
-      "evening": []
-    },
-    ...
-  ]
-}
-###
-
-###
-@api {delete} /meeting/:id/attendee Attendee delete
-@apiName DeleteAttendee
-@apiGroup Meeting/Attendee
-
-@apiHeader {String} Authorization Bearer auth token.
-@apiHeaderExample {json} Header-Example:
-{
-  "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
-}
-
-@apiParam (Url Param) {String} id Meeting's unique id.
-@apiParam (Post Param) {string} email Email address of Atendee to delete.
-@apiParamExample Example Post Object:
-{
-  "email":"xxxxxxxx@gmail.com"
-}
-
-@apiSuccess {String} calendar_hours Start and end times of each time block.
-@apiSuccess {String} meeting_id  Id of the Meeting.
-@apiSuccess {String} tandem_users  List of Users that are currently in the System.
-@apiSuccess {String} schedule  List of all the Available time-slots.
-
-@apiSuccessExample Successful Response:
-HTTP/1.1 200 OK
-{
-  "calendar_hours": {
-    "morning_start": 8,
-    "morning_end": 12,
-    "afternoon_start": 12,
-    "afternoon_end": 17,
-    "evening_start": 17,
-    "evening_end": 20
+  "start": {
+    "dateTime": "2016-04-11T08:45:00-06:00"
   },
-  "meeting_id": "5701bfe987e53e9e06ce5b48",
-  "tandem_users": [
-    {
-      "name": "Test User",
-      "email": "test@example.com"
-    }
-  ],
-  "schedule": [
-    {
-      "day_code": "Sun, Apr 3rd",
-      "morning": [
-        {
-          "start": "2016-04-04T14:45:00.000Z",
-          "end": "2016-04-04T15:45:00.000Z"
-        }
-      ],
-      "afternoon": [],
-      "evening": []
-    },
-    ...
-  ]
+  "end": {
+    "dateTime": "2016-04-11T09:00:00-06:00"
+  },
+  "iCalUID": "xxxxxxxxxaia6hh8adidof5ko@google.com",
+  "sequence": 0,
+  "reminders": {
+    "useDefault": true
+  }
 }
 ###
