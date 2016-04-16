@@ -134,12 +134,10 @@ describe '/meeting/:id', ->
       .send {
         "meeting_summary": "Meeting Title",
         "meeting_location": "Meeting Location",
-        "meeting_time_selection": [
-          {
-            "start": "2016-04-06T23:00:00.000Z",
-            "end": "2016-04-06T23:30:00.000Z"
-          }
-        ],
+        "meeting_time_selection": {
+          "start": "2016-04-06T23:00:00.000Z",
+          "end": "2016-04-06T23:30:00.000Z"
+        }
         "meeting_length": "30"
       }
       .expect 200
