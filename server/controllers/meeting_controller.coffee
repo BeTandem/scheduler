@@ -72,7 +72,7 @@ exports = module.exports = (googleAuth, CalendarParser, Meeting, User) ->
           if err then return next(err)
           googleAuth.getAuthClient user, (err, oauth2Client) ->
             if err then return next(err)
-            emailsArr = (attendee.email for attendee in meeting.attendees)
+            emailsArr = (attendee for attendee in meeting.attendees)
             meetingInfo =
               meetingSummary: meetingSummary
               meetingLocation: meetingLocation
