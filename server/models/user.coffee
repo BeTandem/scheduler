@@ -57,7 +57,7 @@ exports = module.exports = (mongojs, db) ->
       }, (err, result) ->
         if err || !result
           console.log "Update user auth error:", err
-        calback(err, result)
+        callback(err, result)
 
   return User
 

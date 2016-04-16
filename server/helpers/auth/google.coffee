@@ -100,7 +100,7 @@ exports = module.exports = (User, googleapis, config, logger) ->
       tokenPromise = refreshAccessToken(oauth2Client)
       tokenPromise
       .then (tokens)->
-        User.methods.updateAuth user.id, tokens
+        User.methods.updateAuth user.id, tokens, () ->
         oauth2Client.setCredentials tokens
         callback(null, oauth2Client)
       .catch (err) ->
