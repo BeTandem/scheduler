@@ -92,7 +92,7 @@ exports = module.exports = (googleAuth, CalendarParser, CalendarTokenizer, Meeti
         initiator = doc.meeting_initiator
         emails = doc.emails
         timezone = doc.timezone
-        lenInMin = doc.length_in_min
+        lenInMin = doc.length_in_mi
         if emails
           if !inEmailList(email, emails)
             emails.push email
@@ -156,7 +156,9 @@ exports = module.exports = (googleAuth, CalendarParser, CalendarTokenizer, Meeti
     getNewCalendar: (req, res, next) ->
       meeting = req.meeting
       initiator = meeting.meeting_initiator
-      emails = (attendee.email for attendee in meeting.attendees)
+      emails = []
+      if meeting.attendees
+        emails = (attendee.email for attendee in meeting.attendees)
       startDate = parseInt(req.params.startDate)
       if !inEmailList initiator, emails
         emails.push initiator
