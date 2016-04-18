@@ -5,15 +5,18 @@
   */
 
 var gulp       = require('gulp'),
-	  coffeelint = require('gulp-coffeelint'),
-		nodemon    = require('gulp-nodemon'),
-		coffee     = require('gulp-coffee'),
-		clean      = require('gulp-clean'),
-		watch      = require('gulp-watch'),
-		gutil      = require('gulp-util'),
+    coffeelint = require('gulp-coffeelint'),
+    nodemon    = require('gulp-nodemon'),
+    coffee     = require('gulp-coffee'),
+    clean      = require('gulp-clean'),
+    watch      = require('gulp-watch'),
+    gutil      = require('gulp-util'),
     uglify     = require('gulp-uglify'),
-		stylish    = require('coffeelint-stylish'),
-    mocha      = require('gulp-mocha');
+    stylish    = require('coffeelint-stylish'),
+    mocha      = require('gulp-mocha'),
+    sourcemaps = require('gulp-sourcemaps'),
+    apidoc     = require('gulp-apidoc');
+
 
 /**
   * Gulp Configurations
@@ -21,11 +24,9 @@ var gulp       = require('gulp'),
 
 var config = {
   prod: !!gutil.env.production,
+  build: !!gutil.env.build,
   init: function(){
     this.env = this.prod ? 'production' : 'development';
-    if(!!gutil.env.test){
-      this.env = 'test'
-    }
     return this;
   }
 }.init();
@@ -70,14 +71,32 @@ gulp.task('clean', function(){
 
 // Watch for changes in js
 gulp.task('watch', function(){
-	gulp.watch('./server/**/*.coffee', ['coffee', 'lint'])
+  if(!config.build) {
+    gulp.watch('./server/**/*.coffee', ['coffee', 'lint']);
+  }
 });
+
+/**
+ * APIDOC
+ */
+
+gulp.task('apidoc', function(done){
+  apidoc({
+    src: "apidocs/docs/",
+    dest: "apidocs/build",
+    debug: true,
+    template: "apidocs/template"
+  },done);
+});
+
 
 /**
   * Testing Tasks
   */
 
 gulp.task('test', function(){
+  process.env.NODE_ENV = 'test';
+  process.env.PORT = 3002;
   require('coffee-script/register'); // Required for mocha
   var reporter = !!process.env.CIRCLECI ? 'mocha-junit-reporter' : 'spec';
   gulp.src('tests/**/*.coffee', {read:false})
@@ -87,7 +106,10 @@ gulp.task('test', function(){
       mochaFile: process.env.CIRCLE_TEST_REPORTS + '/junit-report.xml'
     },
     compilers: 'coffee'
-  }));
+  }))
+  .once('end', function () {
+    process.exit();
+  });
 });
 
 
@@ -96,12 +118,15 @@ gulp.task('test', function(){
   */
 
 // Start Nodemon Server
-gulp.task('nodemon', function () {
-  nodemon({
-    script: './dist/index.js',
-    ext: 'coffee',
-    env: { 'NODE_ENV': config.env }
-  });
+gulp.task('nodemon', ['coffee', 'lint'], function () {
+  if (!config.build) {
+    nodemon({
+      exec: 'node --debug',
+      script: './dist/index.js',
+      ext: 'coffee',
+      env: {'NODE_ENV': config.env}
+    });
+  }
 });
 
 // default task

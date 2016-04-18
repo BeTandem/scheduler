@@ -1,30 +1,31 @@
-mongojs = require "mongojs"
-db      = require("../database_adapter").getDB()
-Meeting = db.collection 'meeting'
+'use strict'
 
-Meeting.methods =
+exports = module.exports = (mongojs, db, logger) ->
+  Meeting = db.collection 'meeting'
+  Meeting.methods =
 
-  create: (meeting, callback) ->
-    return Meeting.insert meeting , (err, result) ->
-      if err
-        console.log(err)
-      else if callback
-        callback(result)
+    create: (meeting, callback) ->
+      return Meeting.insert meeting, (err, result) ->
+        if err
+          logger.error("Meetings Model Error:", err)
+        callback(err, result)
 
-  findById: (id, callback) ->
-    return Meeting.find {
-      _id: mongojs.ObjectId(id)
-      }
+    findById: (id, callback) ->
+      Meeting.findOne {
+        _id: mongojs.ObjectId(id)
+      }, (err, result) ->
+        callback(err, result)
 
-  update: (id, data, callback) ->
-    return Meeting.findAndModify {
-      query: {_id: mongojs.ObjectId(id)}
-      update: { $set: data }
-      new: true
+    update: (id, data, callback) ->
+      Meeting.findAndModify {
+        query: {_id: mongojs.ObjectId(id)}
+        update: {$set: data}
+        new: true
       }, (err, result) ->
         if err
-          console.log(err)
-        else if callback
-          callback(result)
+          logger.error("Meetings Model Error:", err)
+        callback(err, result)
 
-module.exports = Meeting
+  return Meeting
+
+exports['@require'] = ['mongojs', 'database', 'logger']

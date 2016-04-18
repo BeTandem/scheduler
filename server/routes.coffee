@@ -1,48 +1,63 @@
-"use strict"
-authController        = require './controllers/auth_controller'
-meetingController     = require './controllers/meeting_controller'
-passport              = require './authentication'
-morgan                = require 'morgan'
+'use strict'
+
+morgan = require 'morgan'
 
 module.exports = (app, router) ->
-  app.use passport.initialize()
-  app.use morgan('combined')
-  app.use "/api/v1", router
+  ioc = app.ioc
+  passport = ioc.create 'middlewares/passport'
+  validator = ioc.create 'helpers/validator'
+  errorHandler = ioc.create 'helpers/error_handler'
 
-  password = passport.authenticate 'password', { session: false }
-  bearer = passport.authenticate 'bearer', { session: false }
-  google = passport.authenticate 'google', { accessType: 'offline'}
-  googleReturn = passport.authenticate('google',
-    successRedirect: '/'
-    failureRedirect: '/login')
+  app.use passport.initialize()
+  if process.env.NODE_ENV != 'test'
+    app.use morgan('combined')
+  app.use "/api/v1", router
+  app.use errorHandler.handler
+
+  bearer = passport.authenticate 'bearer', {session: false}
 
   app.get "/", (req, res) ->
     res.status(200).send "TandemApi"
 
-  # Login/logout Routes
-  router.route "/login"
-    .post (req, res) ->
-      authController.google(req, res)
+  router.route "/user/login"
+  .post (req, res, next) ->
+    err = validator.validateType("login").getValidationErrors(req)
+    if err then return next(err)
+    authController = ioc.create 'controllers/auth_controller'
+    authController.googleLogin(req, res, next)
 
-  router.route "/logout"
-    #this route is only useful for session based auth
-    .get authController.removeAuthentication, (req, res) ->
-      res.status(200).send "Successfully logged out"
+  router.route "/meeting"
+  .get bearer, (req, res, next) ->
+    ioc.create('controllers/meeting_controller').createMeeting(req, res, next)
 
-  router.route "/auth/google"
-    .get google, (req,res) ->
-      res.status(200).send req
+  router.route "/meeting/:id"
+  .all bearer, (req, res, next) ->
+    ioc.create('middlewares/add_meeting').checkAndAddMeetingToRequest(req, res, next)
+  .get bearer, (req, res, next) ->
+    ioc.create('controllers/meeting_controller').getMeeting(req, res, next)
+  .put bearer, (req, res, next) ->
+    err = validator.validateType("meeting").getValidationErrors(req)
+    if err then return next(err)
+    ioc.create('controllers/meeting_controller').updateMeeting(req, res, next)
+  .post bearer, (req, res, next) ->
+    err = validator.validateType("send").getValidationErrors(req)
+    if err then return next(err)
+    ioc.create('controllers/meeting_controller').sendEmailInvites(req, res, next)
 
-  app.get "/auth/google/callback", googleReturn, (req,res) ->
-    res.status(200).send 'woot'
+  router.route "/meeting/:id/attendee/:email"
+  .all bearer, (req, res, next) ->
+    ioc.create('middlewares/add_meeting').checkAndAddMeetingToRequest(req, res, next)
+  .post bearer, (req, res, next) ->
+    err = validator.validateType("add_attendee").getValidationErrors(req)
+    if err then return next(err)
+    ioc.create('controllers/meeting_controller').addAttendee(req, res , next)
+  .delete bearer, (req, res, next) ->
+    err = validator.validateType("delete_attendee").getValidationErrors(req)
+    if err then return next(err)
+    ioc.create('controllers/meeting_controller').removeAttendee(req, res, next)
 
-  # Meeting Routes
-  router.route "/attendees"
-    .post (req, res) ->
-      meetingController.addEmail(req, res)
-    .delete (req, res) ->
-      meetingController.removeEmail(req, res)
-
-  router.route "/meetings/"
-    .post (req, res) ->
-      meetingController.addMeeting(req, res)
+  router.route "/meeting/:id/calendar/:startDate"
+  .all bearer, (req, res, next) ->
+    ioc.create('middlewares/add_meeting').checkAndAddMeetingToRequest(req, res, next)
+  .get bearer, (req, res, next) ->
+    ioc.create('controllers/meeting_controller').getNewCalendar(req, res, next)
