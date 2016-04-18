@@ -27,7 +27,7 @@ exports = module.exports = (jwt, config, googleAuth, User) ->
               response = @buildAuthResponse(user)
               res.status(200).send response
             else
-              User.methods.addUser googleUser, (err, result) =>
+              User.methods.addUser googleUser, (err) =>
                 if err then return next(err)
                 else
                   response = @buildAuthResponse(googleUser)
@@ -44,7 +44,6 @@ exports = module.exports = (jwt, config, googleAuth, User) ->
         if (err)
           return done err, false
         else
-          # TODO: Check against session store
           decoded.token = token
           return done null, decoded
 

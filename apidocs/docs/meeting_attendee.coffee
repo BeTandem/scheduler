@@ -18,6 +18,9 @@
   "email":"xxxxxxxx@gmail.com"
 }
 
+@apiSuccess {Boolean} has_prev Whether or not there is a prev token
+@apiSuccess {Boolean} has_next Whether or not there is a next token
+@apiSuccess {Number} [next] Moment Value of one day after the end of the current week
 @apiSuccess {String} calendar_hours Start and end times of each time block.
 @apiSuccess {String} meeting_id  Id of the Meeting.
 @apiSuccess {String} tandem_users  List of Users that are currently in the System.
@@ -26,6 +29,9 @@
 @apiSuccessExample Successful Response:
 HTTP/1.1 200 OK
 {
+  "has_prev": false,
+  "has_next": true,
+  "next": 1460959200000,
   "calendar_hours": {
     "morning_start": 8,
     "morning_end": 12,
@@ -72,6 +78,9 @@ HTTP/1.1 200 OK
 @apiParam (Url Param) {String} id Meeting's unique id.
 @apiParam (Url Param) {String} email Email address to delete.
 
+@apiSuccess {Boolean} has_prev Whether or not there is a prev token
+@apiSuccess {Boolean} has_next Whether or not there is a next token
+@apiSuccess {Number} [next] Moment Value of one day after the end of the current week
 @apiSuccess {String} calendar_hours Start and end times of each time block.
 @apiSuccess {String} meeting_id  Id of the Meeting.
 @apiSuccess {String} tandem_users  List of Users that are currently in the System.
@@ -80,6 +89,9 @@ HTTP/1.1 200 OK
 @apiSuccessExample Successful Response:
 HTTP/1.1 200 OK
 {
+  "has_prev": false,
+  "has_next": true,
+  "next": 1460959200000,
   "calendar_hours": {
     "morning_start": 8,
     "morning_end": 12,
