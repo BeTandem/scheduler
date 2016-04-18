@@ -50,4 +50,10 @@ module.exports = (app, router) ->
   .delete bearer, (req, res, next) ->
     err = validator.validateType("delete_attendee").getValidationErrors(req)
     if err then return next(err)
-    ioc.create('controllers/meeting_controller').removeAttendee(req, res , next)
+    ioc.create('controllers/meeting_controller').removeAttendee(req, res, next)
+
+  router.route "/meeting/:id/calendar/:startDate"
+  .all bearer, (req, res, next) ->
+    ioc.create('middlewares/add_meeting').checkAndAddMeetingToRequest(req, res, next)
+  .get bearer, (req, res, next) ->
+    ioc.create('controllers/meeting_controller').getNewCalendar(req, res, next)

@@ -21,11 +21,11 @@ exports = module.exports = (_, moment)->
       @timezone = timezone
       @meetingLengthInMinutes = meetingLengthInMinutes || @meetingLengthDefault
 
-    buildMeetingCalendar: (calendarsList) ->
+    buildMeetingCalendar: (calendarsList, startDayTime) ->
       meetDuration = moment.duration(minutes: @meetingLengthInMinutes)
       flattenedCalendar = @flattenCalendars(calendarsList)
       busyMomentRanges = @convertFreeBusyToMomentRanges(flattenedCalendar)
-      emptyCalendar = @buildEmptyCalendarFormat()
+      emptyCalendar = @buildEmptyCalendarFormat(startDayTime)
 
       #Build Out fifteen min range for iteration
       now = moment()
@@ -36,6 +36,8 @@ exports = module.exports = (_, moment)->
       for day in emptyCalendar
         dayObj =
           day_code: day.day_code
+          moment: day.moment
+        delete day['moment']
         delete day['day_code']
 
         for key, timeRange of day
@@ -47,7 +49,6 @@ exports = module.exports = (_, moment)->
                 dayObj[key].push(newRange)
 
         availableRanges.push(dayObj)
-
       return availableRanges
 
 
@@ -75,16 +76,18 @@ exports = module.exports = (_, moment)->
           return false
       return true
 
-    buildEmptyCalendarFormat: () ->
+    buildEmptyCalendarFormat: (startDayTime) ->
       calendarChunks = []
       # Get Range
       nowTime = moment()
-      weekFromNow = moment(nowTime).add(moment.duration(calendarDays-1, 'days'))
-      week = moment.range(nowTime, weekFromNow)
+      startDayMoment = moment(startDayTime)
+      endDayMoment = moment(startDayMoment).add(moment.duration(calendarDays-1, 'days'))
+      week = moment.range(startDayMoment, endDayMoment)
 
       #iterate through days to create time chunks
       week.by 'days', (day) =>
         dayObj =
+          moment: day
           day_code: day.format('ddd, MMM Do') #Example: 'Tue, Mar 15th'
           morning: null
           afternoon: null

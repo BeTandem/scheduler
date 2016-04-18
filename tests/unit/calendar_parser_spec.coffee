@@ -20,8 +20,8 @@ describe "CalendarParser", ->
     it "should properly build a 5-day empty calendar format", (done) ->
       CalendarParser = ioc.create 'helpers/calendar_parser'
       meetingLength = 60
-      calendarParser = new CalendarParser(timezone, meetingLength);
-      EmptyCalendarFormat = calendarParser.buildEmptyCalendarFormat();
+      calendarParser = new CalendarParser(timezone, meetingLength)
+      EmptyCalendarFormat = calendarParser.buildEmptyCalendarFormat(moment())
       expect(EmptyCalendarFormat.length).to.equal numberOfCalendarDays
 
       #test values for next day (since current day may not have times)
@@ -43,7 +43,7 @@ describe "CalendarParser", ->
       CalendarParser = ioc.create 'helpers/calendar_parser'
       meetingLength = 60
       calendarParser = new CalendarParser(timezone, meetingLength);
-      calendarAvailability = calendarParser.buildMeetingCalendar([]);
+      calendarAvailability = calendarParser.buildMeetingCalendar([], moment());
       expect(calendarAvailability.length).to.equal numberOfCalendarDays
       expect(calendarAvailability[1].morning.length).to.equal 13
       expect(calendarAvailability[1].afternoon.length).to.equal 17
@@ -54,7 +54,7 @@ describe "CalendarParser", ->
       CalendarParser = ioc.create 'helpers/calendar_parser'
       meetingLength = 15
       calendarParser = new CalendarParser(timezone, meetingLength);
-      calendarAvailability = calendarParser.buildMeetingCalendar([]);
+      calendarAvailability = calendarParser.buildMeetingCalendar([], moment());
       expect(calendarAvailability.length).to.equal numberOfCalendarDays
       expect(calendarAvailability[1].morning.length).to.equal 16
       expect(calendarAvailability[1].afternoon.length).to.equal 20
@@ -88,7 +88,7 @@ describe "CalendarParser", ->
           }
         }
       }
-      calendarAvailability = calendarParser.buildMeetingCalendar([freeBusyCal])
+      calendarAvailability = calendarParser.buildMeetingCalendar([freeBusyCal], moment())
       expect(calendarAvailability[1].morning.length).to.equal 0
       expect(calendarAvailability[1].afternoon.length).to.equal 17
       expect(calendarAvailability[1].evening.length).to.equal 9
@@ -129,7 +129,7 @@ describe "CalendarParser", ->
           }
         }
       }
-      calendarAvailability = calendarParser.buildMeetingCalendar([freeBusyCal])
+      calendarAvailability = calendarParser.buildMeetingCalendar([freeBusyCal], moment())
       expect(calendarAvailability[1].morning.length).to.equal 5
       expect(calendarAvailability[1].afternoon.length).to.equal 17
       expect(calendarAvailability[1].evening.length).to.equal 9

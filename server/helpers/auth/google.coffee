@@ -1,6 +1,6 @@
 'use strict'
 
-exports = module.exports = (User, googleapis, config, logger) ->
+exports = module.exports = (User, googleapis, config, logger, moment) ->
   oauth2 = googleapis.oauth2('v2')
   calendar = googleapis.calendar('v3')
 
@@ -31,12 +31,12 @@ exports = module.exports = (User, googleapis, config, logger) ->
           logger.error "Googleapis Calendar Events Error:", err
         callback err, events
 
-    getCalendarsFromUsers: (userList, callback) ->
+    getCalendarsFromUsers: (userList ,startTime, callback) ->
       busyFreePromiseList = []
       for user in userList
         getStoredAuthClient user, (err, oauth2Client) ->
           if oauth2Client
-            busyFreePromise = getCalendarFreeBusy(oauth2Client)
+            busyFreePromise = getCalendarFreeBusy(oauth2Client, startTime)
             busyFreePromiseList.push busyFreePromise
           else
             busyFreePromiseList.push Promise.reject(err)
@@ -95,7 +95,8 @@ exports = module.exports = (User, googleapis, config, logger) ->
     oauth2Client.setCredentials user.auth
 
     # Need to refresh access token
-    if user.auth.expiry_date < (new Date).getTime()
+    expiry_date = moment(parseInt(user.auth.expiry_date))
+    if expiry_date.unix() < moment().unix()
       logger.info("Refreshing Access Token")
       tokenPromise = refreshAccessToken(oauth2Client)
       tokenPromise
@@ -139,9 +140,9 @@ exports = module.exports = (User, googleapis, config, logger) ->
         logger.error "Get Calendar Ids Error:", err
       callback(err, calendarIds)
 
-  getCalendarFreeBusy = (oauth2Client) ->
-    today = new Date()
-    weekFromToday = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000)
+  getCalendarFreeBusy = (oauth2Client, startTime) ->
+    start = if startTime then moment(startTime) else moment()
+    weekFromStart = moment(start).add(1, 'weeks')
     return new Promise (resolve, reject) ->
       getCalendarIds oauth2Client, (err, calendarList) ->
         if err
@@ -149,8 +150,8 @@ exports = module.exports = (User, googleapis, config, logger) ->
         calendarIds = ({id: cal.id} for cal in calendarList.items)
         calendar.freebusy.query {
           resource:
-            timeMin: today.toISOString()
-            timeMax: weekFromToday.toISOString()
+            timeMin: start.toISOString()
+            timeMax: weekFromStart.toISOString()
             items: calendarIds
           auth: oauth2Client
         }, (err, busyFree)->
@@ -166,4 +167,4 @@ description = "<div class=\"container\" style=\"width: 320px; margin-top: 40px; 
 
 
 
-exports['@require'] = ['models/user', 'googleapis', 'config', 'logger']
+exports['@require'] = ['models/user', 'googleapis', 'config', 'logger', 'moment']

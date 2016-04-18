@@ -1,6 +1,6 @@
 'use strict'
 
-exports = module.exports = (googleAuth, CalendarParser, Meeting, User) ->
+exports = module.exports = (googleAuth, CalendarParser, CalendarTokenizer, Meeting, User) ->
 
   meetingController =
 
@@ -14,11 +14,12 @@ exports = module.exports = (googleAuth, CalendarParser, Meeting, User) ->
             if err then return next(err)
             timezone = timezoneSetting.value
             Meeting.methods.create {meeting_initiator: initiator.email}, (err, meeting) ->
-              googleAuth.getCalendarsFromUsers [initiatorUser], (err, cals) ->
+              googleAuth.getCalendarsFromUsers [initiatorUser], null, (err, cals) ->
                 if err then return next(err)
                 calendarParser = new CalendarParser(timezone, 60)
-                availability = calendarParser.buildMeetingCalendar(cals)
-                response = {}
+                startDateTime = cals[0].timeMin
+                availability = calendarParser.buildMeetingCalendar(cals, startDateTime)
+                response = CalendarTokenizer.getCalendarPrevNextTokens(availability)
                 response.calendar_hours = getCalendarTimes(calendarParser)
                 response.meeting_id = meeting._id
                 response.tandem_users = {name: initiatorUser.name, email: initiatorUser.email}
@@ -46,11 +47,12 @@ exports = module.exports = (googleAuth, CalendarParser, Meeting, User) ->
             emails = emails.concat (attendee.email for attendee in req.body.attendees)
           UsersFromEmails emails, (err, users) ->
             if err then return next(err)
-            googleAuth.getCalendarsFromUsers users, (err, cals) ->
+            googleAuth.getCalendarsFromUsers users, null, (err, cals) ->
 #              if err then return next(new Error(err))
               calendarParser = new CalendarParser(timezone, lenInMin)
-              availability = calendarParser.buildMeetingCalendar(cals)
-              response = {}
+              startDateTime = cals[0].timeMin
+              availability = calendarParser.buildMeetingCalendar(cals, startDateTime)
+              response = CalendarTokenizer.getCalendarPrevNextTokens(availability)
               response.calendar_hours = getCalendarTimes(calendarParser)
               response.meeting_id = meeting._id
               response.tandem_users = ({name: user.name, email: user.email} for user in users)
@@ -106,11 +108,12 @@ exports = module.exports = (googleAuth, CalendarParser, Meeting, User) ->
           # Build out calendar data
           UsersFromEmails emails, (err, users) ->
             if err then return next(err)
-            googleAuth.getCalendarsFromUsers users, (err, cals) ->
+            googleAuth.getCalendarsFromUsers users, null, (err, cals) ->
               if err then return next(err)
               calendarParser = new CalendarParser(timezone, lenInMin)
-              availability = calendarParser.buildMeetingCalendar(cals)
-              response = {}
+              startDateTime = cals[0].timeMin
+              availability = calendarParser.buildMeetingCalendar(cals, startDateTime)
+              response = CalendarTokenizer.getCalendarPrevNextTokens(availability)
               response.calendar_hours = getCalendarTimes(calendarParser)
               response.tandem_users = ({name: user.name, email: user.email} for user in users)
               response.schedule = availability
@@ -139,15 +142,35 @@ exports = module.exports = (googleAuth, CalendarParser, Meeting, User) ->
 
             UsersFromEmails emails, (err, users) ->
               if err then return next(err)
-              googleAuth.getCalendarsFromUsers users, (err, cals) ->
+              googleAuth.getCalendarsFromUsers users, null, (err, cals) ->
                 if err then return next(err)
                 calendarParser = new CalendarParser(timezone, lenInMin)
-                availability = calendarParser.buildMeetingCalendar(cals)
-                response = {}
+                startDateTime = cals[0].timeMin
+                availability = calendarParser.buildMeetingCalendar(cals, startDateTime)
+                response = CalendarTokenizer.getCalendarPrevNextTokens(availability)
                 response.calendar_hours = getCalendarTimes(calendarParser)
                 response.tandem_users = ({name: user.name, email: user.email} for user in users)
                 response.schedule = availability
                 res.status(200).send response
+
+    getNewCalendar: (req, res, next) ->
+      meeting = req.meeting
+      initiator = meeting.meeting_initiator
+      emails = (attendee.email for attendee in meeting.attendees)
+      startDate = parseInt(req.params.startDate)
+      if !inEmailList initiator, emails
+        emails.push initiator
+      UsersFromEmails emails, (err, users) ->
+        if err then return next(err)
+        googleAuth.getCalendarsFromUsers users, startDate, (err, cals) ->
+          if err then return next(err)
+          calendarParser = new CalendarParser(meeting.timezone, meeting.length_in_min)
+          availability = calendarParser.buildMeetingCalendar(cals, cals[0].timeMin)
+          response = CalendarTokenizer.getCalendarPrevNextTokens(availability)
+          response.calendar_hours = getCalendarTimes(calendarParser)
+          response.schedule = availability
+          res.status(200).send response
+
 
   # Private Helpers
   timezoneFromUserId = (id, callback) ->
@@ -181,4 +204,10 @@ exports = module.exports = (googleAuth, CalendarParser, Meeting, User) ->
 
   return meetingController
 
-exports['@require'] = ['helpers/auth/google', 'helpers/calendar_parser', 'models/meeting', 'models/user']
+exports['@require'] = [
+  'helpers/auth/google',
+  'helpers/calendar_parser',
+  'helpers/calendar_tokenizer',
+  'models/meeting',
+  'models/user'
+]
