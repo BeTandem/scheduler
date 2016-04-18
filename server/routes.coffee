@@ -31,6 +31,8 @@ module.exports = (app, router) ->
     ioc.create('controllers/meeting_controller').createMeeting(req, res, next)
 
   router.route "/meeting/:id"
+  .all bearer, (req, res, next) ->
+    ioc.create('middlewares/add_meeting').checkAndAddMeetingToRequest(req, res, next)
   .get bearer, (req, res, next) ->
     ioc.create('controllers/meeting_controller').getMeeting(req, res, next)
   .put bearer, (req, res, next) ->
@@ -43,6 +45,8 @@ module.exports = (app, router) ->
     ioc.create('controllers/meeting_controller').sendEmailInvites(req, res, next)
 
   router.route "/meeting/:id/attendee/:email"
+  .all bearer, (req, res, next) ->
+    ioc.create('middlewares/add_meeting').checkAndAddMeetingToRequest(req, res, next)
   .post bearer, (req, res, next) ->
     err = validator.validateType("add_attendee").getValidationErrors(req)
     if err then return next(err)
