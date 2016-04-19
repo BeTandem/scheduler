@@ -14,10 +14,10 @@ exports = module.exports = (googleAuth, CalendarParser, CalendarTokenizer, Meeti
             if err then return next(err)
             timezone = timezoneSetting.value
             Meeting.methods.create {meeting_initiator: initiator.email}, (err, meeting) ->
-              googleAuth.getCalendarsFromUsers [initiatorUser], null, (err, cals) ->
+              googleAuth.getCalendarFreeBusy oauth2Client, null, (err, cals) ->
                 if err then return next(err)
                 calendarParser = new CalendarParser(timezone, 60)
-                startDateTime = cals[0].timeMin
+                startDateTime = cals.timeMin
                 availability = calendarParser.buildMeetingCalendar(cals, startDateTime)
                 response = CalendarTokenizer.getCalendarPrevNextTokens(availability)
                 response.calendar_hours = getCalendarTimes(calendarParser)

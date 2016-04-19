@@ -31,6 +31,13 @@ exports = module.exports = (User, googleapis, config, logger, moment) ->
           logger.error "Googleapis Calendar Events Error:", err
         callback err, events
 
+    getCalendarFreeBusy: (oauth2Client, startTime, callback) ->
+      getCalendarFreeBusy(oauth2Client, startTime)
+      .then (cals) ->
+        callback null, cals
+      .catch (err) ->
+        callback err
+
     getCalendarsFromUsers: (userList ,startTime, callback) ->
       busyFreePromiseList = []
       for user in userList
