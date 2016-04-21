@@ -66,7 +66,7 @@ exports = module.exports = (_, moment)->
     convertFreeBusyToMomentRanges: (flattenedCalendar) ->
       freeBusyRanges = []
       for busy in flattenedCalendar
-        range = moment.range(moment(busy.start), moment(busy.end))
+        range = moment.range(moment.utc(busy.start), moment.utc(busy.end))
         freeBusyRanges.push(range)
       return freeBusyRanges
 

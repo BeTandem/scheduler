@@ -18,7 +18,7 @@ exports = module.exports = (googleAuth, CalendarParser, CalendarTokenizer, Meeti
                 if err then return next(err)
                 calendarParser = new CalendarParser(timezone, 60)
                 startDateTime = cals.timeMin
-                availability = calendarParser.buildMeetingCalendar(cals, startDateTime)
+                availability = calendarParser.buildMeetingCalendar([cals], startDateTime)
                 response = CalendarTokenizer.getCalendarPrevNextTokens(availability)
                 response.calendar_hours = getCalendarTimes(calendarParser)
                 response.meeting_id = meeting._id

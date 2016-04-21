@@ -55,7 +55,7 @@ gulp.task('coffee', function() {
   }
 
   // Development Build
-  else{
+  else if (!gutil.env.webstorm) {
     gulp.src('./server/**/*.coffee')
       .pipe(coffee({bare: true}).on('error', gutil.log))
       .pipe(gulp.dest('./dist'));
