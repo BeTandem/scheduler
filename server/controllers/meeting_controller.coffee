@@ -5,163 +5,175 @@ exports = module.exports = (googleAuth, CalendarParser, CalendarTokenizer, Meeti
   meetingController =
 
     createMeeting: (req, res, next) ->
-      initiator = req.user
-      User.methods.findByGoogleId initiator.id, (err, initiatorUser) ->
+      initiatorUser = req.user
+
+      # Builds Auth Client and Refreshes token if needed
+      googleAuth.getAuthClient initiatorUser, (err, oauth2Client) ->
         if err then return next(err)
-        googleAuth.getAuthClient initiatorUser, (err, oauth2Client) ->
+
+        # Gets the current Timezone at time of meeting creation
+        googleAuth.getUserTimezone oauth2Client, (err, timezoneSetting) ->
           if err then return next(err)
-          googleAuth.getUserTimezone oauth2Client, (err, timezoneSetting) ->
-            if err then return next(err)
-            timezone = timezoneSetting.value
-            Meeting.methods.create {meeting_initiator: initiator.email, timezone: timezone}, (err, meeting) ->
-              googleAuth.getCalendarFreeBusy oauth2Client, null, (err, cals) ->
-                if err then return next(err)
-                calendarParser = new CalendarParser(timezone, 60)
-                startDateTime = cals.timeMin
-                availability = calendarParser.buildMeetingCalendar([cals], startDateTime)
-                response = CalendarTokenizer.getCalendarPrevNextTokens(availability)
-                response.calendar_hours = getCalendarTimes(calendarParser)
-                response.meeting_id = meeting._id
-                response.tandem_users = {name: initiatorUser.name, email: initiatorUser.email}
-                response.schedule = availability
-                res.status(200).send response
+          timezone = timezoneSetting.value
 
-    getMeeting: (req, res, next) ->
-      meeting_id = req.params.id
-      Meeting.methods.findById meeting_id, (err, meeting) ->
-        if err then return next(err)
-        res.status(200).send(meeting)
+          # Create meeting in Database
+          Meeting.methods.create {meeting_initiator: initiatorUser.email, timezone: timezone}, (err, meeting) ->
 
-    updateMeeting:(req, res, next) ->
-      meeting_id = req.params.id
-      lenInMin = req.body.length_in_min
-      initiator = req.user
-
-      timezoneFromUserId initiator.id, (err, timezone) ->
-        if err then return next(err)
-        req.body.timezone = timezone
-        Meeting.methods.update meeting_id, req.body, (err, meeting) ->
-          if err then return next(err)
-          emails = [req.user.email]
-          if req.body.attendees
-            emails = emails.concat (attendee.email for attendee in req.body.attendees)
-          UsersFromEmails emails, (err, users) ->
-            if err then return next(err)
-            googleAuth.getCalendarsFromUsers users, null, (err, cals) ->
-#              if err then return next(new Error(err))
-              calendarParser = new CalendarParser(timezone, lenInMin)
-              startDateTime = cals[0].timeMin
-              availability = calendarParser.buildMeetingCalendar(cals, startDateTime)
+            # Build Response object
+            googleAuth.getCalendarFreeBusy oauth2Client, null, (err, cals) ->
+              if err then return next(err)
+              calendarParser = new CalendarParser(timezone, 60)
+              startDateTime = cals.timeMin
+              availability = calendarParser.buildMeetingCalendar([cals], startDateTime)
               response = CalendarTokenizer.getCalendarPrevNextTokens(availability)
               response.calendar_hours = getCalendarTimes(calendarParser)
               response.meeting_id = meeting._id
-              response.tandem_users = ({name: user.name, email: user.email} for user in users)
+              response.tandem_users = {name: initiatorUser.name, email: initiatorUser.email}
               response.schedule = availability
               res.status(200).send response
 
+
+    getMeeting: (req, res, next) ->
+      # Simply returns the meeting added via middleware
+      res.status(200).send(req.meeting)
+
+
+    updateMeeting:(req, res, next) ->
+      meeting_id = req.meeting._id
+      lenInMin = req.body.length_in_min
+      timezone = req.meeting.timezone
+
+
+      # Update Meeting
+      Meeting.methods.update meeting_id, req.body, (err, meeting) ->
+        initiatorEmail = meeting.meeting_initiator
+        emails = if meeting.emails then meeting.emails else []
+        if !inEmailList initiatorEmail, emails
+          emails.push initiatorEmail
+
+        # Build Response Object
+        UsersFromEmails emails, (err, users) ->
+          if err then return next(err)
+          googleAuth.getCalendarsFromUsers users, null, (err, cals) ->
+            if err then return next(err)
+            calendarParser = new CalendarParser(timezone, lenInMin)
+            startDateTime = cals[0].timeMin
+            availability = calendarParser.buildMeetingCalendar(cals, startDateTime)
+            response = CalendarTokenizer.getCalendarPrevNextTokens(availability)
+            response.calendar_hours = getCalendarTimes(calendarParser)
+            response.meeting_id = meeting._id
+            response.tandem_users = ({name: user.name, email: user.email} for user in users)
+            response.schedule = availability
+            res.status(200).send response
+
+
     sendEmailInvites: (req, res, next) ->
-      meeting_id = req.params.id or req.body.meeting_id
+      meeting = req.meeting
       meetingSummary = req.body.meeting_summary
       meetingLocation = req.body.meeting_location
       timeSelection = req.body.meeting_time_selection
+      user = req.user
 
-      Meeting.methods.findById meeting_id, (err, meeting) ->
+      # Builds Auth Client and Refreshes token if needed
+      googleAuth.getAuthClient user, (err, oauth2Client) ->
         if err then return next(err)
-        user_id = req.user.id
-        User.methods.findByGoogleId user_id, (err, user) ->
+
+        # Sends Meeting Invite
+        meetingInfo =
+          meetingSummary: meetingSummary
+          meetingLocation: meetingLocation
+          meetingAttendees: meeting.emails
+          timeSlot: timeSelection
+        googleAuth.sendCalendarInvite oauth2Client, meetingInfo, (err, event) ->
           if err then return next(err)
-          googleAuth.getAuthClient user, (err, oauth2Client) ->
-            if err then return next(err)
-            emailsArr = (attendee for attendee in meeting.attendees)
-            meetingInfo =
-              meetingSummary: meetingSummary
-              meetingLocation: meetingLocation
-              meetingAttendees: emailsArr
-              timeSlot: timeSelection
-            googleAuth.sendCalendarInvite oauth2Client, meetingInfo, (err, event) ->
-              if err then return next(err)
-              res.status(200).send(event)
+          res.status(200).send(event)
+
 
     addAttendee: (req, res, next) ->
-      meeting_id = req.params.id
-      email = req.body.email
+      meeting = req.meeting
+      emailToAdd = req.body.email
+      initiatorEmail = meeting.meeting_initiator
+      emails = meeting.emails
+      timezone = meeting.timezone
+      lenInMin = meeting.length_in_min
 
-      Meeting.methods.findById meeting_id, (err, doc) ->
-        if err then return next(err)
-        # Update the email list && save to meeting
-        initiator = doc.meeting_initiator
-        emails = doc.emails
-        timezone = doc.timezone
-        lenInMin = doc.length_in_mi
-        if emails
-          if !inEmailList(email, emails)
-            emails.push email
-        else
-          emails = [email]
+      # Add new email if not already in emails list
+      if emails
+        if !inEmailList(emailToAdd, emails)
+          emails.push emailToAdd
+      else
+        emails = [emailToAdd]
 
-        Meeting.methods.update meeting_id, {emails: emails}, (err) ->
-          if err then next(err)
-          # Append meeting initiator to schedule
-          if !inEmailList initiator, emails
-            emails.push initiator
+      # Add the emails to the meeting
+      Meeting.methods.update meeting._id, {emails: emails}, (err) ->
+        if err then next(err)
+        # Append meeting initiatorEmail to schedule
+        if !inEmailList initiatorEmail, emails
+          emails.push initiatorEmail
 
-          # Build out calendar data
-          UsersFromEmails emails, (err, users) ->
+        # Build out response object
+        UsersFromEmails emails, (err, users) ->
+          if err then return next(err)
+          googleAuth.getCalendarsFromUsers users, null, (err, cals) ->
             if err then return next(err)
-            googleAuth.getCalendarsFromUsers users, null, (err, cals) ->
-              if err then return next(err)
-              calendarParser = new CalendarParser(timezone, lenInMin)
-              startDateTime = cals[0].timeMin
-              availability = calendarParser.buildMeetingCalendar(cals, startDateTime)
-              response = CalendarTokenizer.getCalendarPrevNextTokens(availability)
-              response.calendar_hours = getCalendarTimes(calendarParser)
-              response.tandem_users = ({name: user.name, email: user.email} for user in users)
-              response.schedule = availability
-              res.status(200).send response
+            calendarParser = new CalendarParser(timezone, lenInMin)
+            startDateTime = cals[0].timeMin
+            availability = calendarParser.buildMeetingCalendar(cals, startDateTime)
+            response = CalendarTokenizer.getCalendarPrevNextTokens(availability)
+            response.calendar_hours = getCalendarTimes(calendarParser)
+            response.tandem_users = ({name: user.name, email: user.email} for user in users)
+            response.schedule = availability
+            res.status(200).send response
 
     removeAttendee: (req, res, next) ->
-      response = {}
-      meeting_id = req.params.id
-      email = req.params.email
-      Meeting.methods.findById meeting_id, (err, doc) ->
+      meeting = req.meeting
+      emailToDelete = req.params.email
+      initiator = meeting.meeting_initiator
+      emails = meeting.emails
+      timezone = meeting.timezone
+      lenInMin = meeting.length_in_min
+
+      # Remove email from email list if it exists
+      if emails
+        if inEmailList(emailToDelete, emails)
+          index = emails.indexOf emailToDelete
+          emails.splice(index, 1)
+
+      # Update meeting with new emails list
+      Meeting.methods.update meeting._id, {emails: emails}, (err) ->
         if err then return next(err)
-        initiator = doc.meeting_initiator
-        emails = doc.emails
-        timezone = doc.timezone
-        lenInMin = doc.length_in_min
-        if emails
-          if inEmailList(email, emails)
-            index = emails.indexOf email
-            emails.splice(index, 1)
 
-        Meeting.methods.update meeting_id, {emails: emails}, (err) ->
+        # Append meeting initiator to schedule
+        emails = if emails then emails else []
+        if !inEmailList initiator, emails
+          emails.push initiator
+
+        # Build out response object
+        UsersFromEmails emails, (err, users) ->
           if err then return next(err)
-          # Append meeting initiator to schedule
-          if !inEmailList initiator, emails
-            emails.push initiator
-
-            UsersFromEmails emails, (err, users) ->
-              if err then return next(err)
-              googleAuth.getCalendarsFromUsers users, null, (err, cals) ->
-                if err then return next(err)
-                calendarParser = new CalendarParser(timezone, lenInMin)
-                startDateTime = cals[0].timeMin
-                availability = calendarParser.buildMeetingCalendar(cals, startDateTime)
-                response = CalendarTokenizer.getCalendarPrevNextTokens(availability)
-                response.calendar_hours = getCalendarTimes(calendarParser)
-                response.tandem_users = ({name: user.name, email: user.email} for user in users)
-                response.schedule = availability
-                res.status(200).send response
+          googleAuth.getCalendarsFromUsers users, null, (err, cals) ->
+            if err then return next(err)
+            calendarParser = new CalendarParser(timezone, lenInMin)
+            startDateTime = cals[0].timeMin
+            availability = calendarParser.buildMeetingCalendar(cals, startDateTime)
+            response = CalendarTokenizer.getCalendarPrevNextTokens(availability)
+            response.calendar_hours = getCalendarTimes(calendarParser)
+            response.tandem_users = ({name: user.name, email: user.email} for user in users)
+            response.schedule = availability
+            res.status(200).send response
 
     getNewCalendar: (req, res, next) ->
       meeting = req.meeting
       initiator = meeting.meeting_initiator
-      emails = []
-      if meeting.attendees
-        emails = (attendee.email for attendee in meeting.attendees)
       startDate = parseInt(req.params.startDate)
+
+      # Append meeting initiator to schedule
+      emails = if meeting.emails then meeting.emails else []
+      console.log emails
       if !inEmailList initiator, emails
         emails.push initiator
+
+      # Build out response object
       UsersFromEmails emails, (err, users) ->
         if err then return next(err)
         googleAuth.getCalendarsFromUsers users, startDate, (err, cals) ->
@@ -175,14 +187,6 @@ exports = module.exports = (googleAuth, CalendarParser, CalendarTokenizer, Meeti
 
 
   # Private Helpers
-  timezoneFromUserId = (id, callback) ->
-    User.methods.findByGoogleId id, (err, initiatorUser) ->
-      if err then return callback(err)
-      googleAuth.getAuthClient initiatorUser, (err, oauth2Client) ->
-        if err then return callback(err)
-        googleAuth.getUserTimezone oauth2Client, (err, timezoneSetting) ->
-          timezone = timezoneSetting.value
-          callback(err, timezone)
 
   UsersFromEmails = (emails, callback) ->
     #collect google Ids from user db from emails
