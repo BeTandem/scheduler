@@ -78,11 +78,13 @@ exports = module.exports = (googleAuth, CalendarParser, CalendarTokenizer, Meeti
       googleAuth.getAuthClient user, (err, oauth2Client) ->
         if err then return next(err)
 
+        emailObjects = ({email: email} for email in meeting.emails)
+
         # Sends Meeting Invite
         meetingInfo =
           meetingSummary: meetingSummary
           meetingLocation: meetingLocation
-          meetingAttendees: meeting.emails
+          meetingAttendees: emailObjects
           timeSlot: timeSelection
         googleAuth.sendCalendarInvite oauth2Client, meetingInfo, (err, event) ->
           if err then return next(err)
